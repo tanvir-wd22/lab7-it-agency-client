@@ -1,6 +1,7 @@
 import Carousel from "../components/Carousel";
 import AboutUs from "./AboutUs";
 import Contact from "./Contact";
+import PrivacyPolicy from "./PrivacyPolicy";
 import Services from "./Services";
 import Testimonials from "./Testimonials";
 
@@ -19,8 +20,11 @@ const Home = () => {
       <div className="mb-8 lg:mb-16">
         <Contact></Contact>
       </div>
-      <div>
+      <div className="mb-8 lg:mb-16">
         <Testimonials></Testimonials>
+      </div>
+      <div className="">
+        <PrivacyPolicy></PrivacyPolicy>
       </div>
     </div>
   );
