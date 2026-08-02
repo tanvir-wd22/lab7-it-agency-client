@@ -3,6 +3,7 @@ import Root from "../layouts/Root";
 import Home from "../pages/Home";
 import AboutUs from "../pages/AboutUs";
 import Services from "../pages/Services";
+import Contact from "../pages/Contact";
 
 const publicRoutes = createBrowserRouter([
   {
@@ -20,6 +21,10 @@ const publicRoutes = createBrowserRouter([
       {
         path: "/aboutUs",
         Component: AboutUs,
+      },
+      {
+        path: "/contact",
+        Component: Contact,
       },
     ],
   },

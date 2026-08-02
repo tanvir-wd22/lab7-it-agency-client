@@ -4,11 +4,12 @@ import { servicesData } from "../data/servicesData";
 const Services = () => {
   return (
     <div>
-      <h1 className="text-center text-sky-500 text-2xl sm:text-3xl lg:text-5xl font-bold mb-4 sm:mb-6 lg:mb-8">
-        Custom It Solutions <br /> for your successful business
+      <h1 className="mx-auto max-w-3xl mb-4 text-balance text-center text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
+        Custom IT Solutions <br className="hidden sm:block" /> for Your
+        Successful Business
       </h1>
 
-       <p className="text-center text-gray-600 text-lg sm:text-xl lg:text-2xl mb-4 sm:mb-6 lg:mb-8">
+      <p className="mx-auto mb-4 max-w-2xl text-balance text-center text-base leading-relaxed text-slate-500 sm:mt-5 sm:text-lg md:text-xl">
         We are a team of experienced professionals dedicated to providing the
         best IT solutions for your business.
       </p>
