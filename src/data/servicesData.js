@@ -13,7 +13,7 @@ export const servicesData = [
       { label: 'React & Node.js', icon: Code2 },
       { label: 'SEO Optimized', icon: Rocket },
     ],
-    ctaLabel: 'Build Website',
+    ctaLabel: 'View Pricing Plans',
   },
 
   {

@@ -87,19 +87,18 @@ function TeamCard({ member }) {
 export default function TeamMembers() {
   return (
     <section className="w-full">
-      {/* ---------- HEADING + DESCRIPTION — outside the box ---------- */}
-      <div className="mx-auto max-w-2xl text-center">
-
-        <h2 className="mt-2 text-balance text-2xl font-bold leading-tight tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
-          Custom IT Solutions for Your Successful Business
+       {/* ---------- HEADING + DESCRIPTION — outside the box ---------- */}
+      <div className="mx-auto max-w-2xl space-y-4 mb-6">
+        <h2 className="text-balance text-center text-2xl font-bold leading-tight tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
+          Build faster with trusted IT experts
         </h2>
 
-        <p className="mx-auto mt-4 max-w-2xl text-balance text-base leading-relaxed text-slate-500 sm:text-lg md:text-xl">
-          We are a team of experienced professionals dedicated to providing
-          the best IT solutions for your business.
+        <p className="mx-auto text-justify text-balance text-base leading-relaxed text-slate-500 sm:text-lg md:text-xl">
+          From cloud infrastructure to custom software, we partner with growing
+          teams to ship reliable technology that scales with your business.
         </p>
 
-        <span className="mx-auto mt-4 block h-1 w-10 rounded-full bg-blue-500" />
+        <span className="mx-auto block h-1 w-10 rounded-full bg-blue-500" />
       </div>
 
       {/* ---------- THE BOX — same #0A2239 background as before ---------- */}

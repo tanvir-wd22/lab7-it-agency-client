@@ -43,6 +43,10 @@ const Header = () => {
           <NavLink to="/contact" className={navClass}>
             Contact
           </NavLink>
+
+          <NavLink to="/testimonials" className={navClass}>
+           Testimonials
+          </NavLink>
         </nav>
 
         {/* Desktop Button */}

@@ -2,6 +2,7 @@ import Carousel from "../components/Carousel";
 import AboutUs from "./AboutUs";
 import Contact from "./Contact";
 import Services from "./Services";
+import Testimonials from "./Testimonials";
 
 const Home = () => {
   return (
@@ -15,8 +16,11 @@ const Home = () => {
       <div className="mb-8 lg:mb-16">
         <AboutUs></AboutUs>
       </div>
-      <div>
+      <div className="mb-8 lg:mb-16">
         <Contact></Contact>
+      </div>
+      <div>
+        <Testimonials></Testimonials>
       </div>
     </div>
   );
