@@ -23,6 +23,8 @@ const Services = () => {
           <ServiceCard item={item} key={item?.id}></ServiceCard>
         ))}
       </div>
+
+     
     </div>
   );
 };
