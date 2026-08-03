@@ -1,13 +1,15 @@
-import { ArrowRight, Menu, X } from 'lucide-react';
-import { useState } from 'react';
-import { NavLink } from 'react-router';
+import { ArrowRight, Menu, X } from "lucide-react";
+import { useState } from "react";
+import { NavLink } from "react-router";
 
 const Header = () => {
   const [open, setOpen] = useState(false);
 
   const navClass = ({ isActive }) =>
     `rounded-md px-3 py-2 text-sm font-medium transition-all duration-200 ${
-      isActive ? 'bg-sky-500/10 text-sky-500' : 'text-zinc-500 hover:bg-white/5 hover:text-white'
+      isActive
+        ? "bg-sky-500/10 text-sky-500"
+        : "text-zinc-500 hover:bg-white/5 hover:text-white"
     }`;
 
   return (
@@ -45,7 +47,15 @@ const Header = () => {
           </NavLink>
 
           <NavLink to="/testimonials" className={navClass}>
-           Testimonials
+            Testimonials
+          </NavLink>
+
+          <NavLink to="/privacyPolicy" className={navClass}>
+            Privacy Policy
+          </NavLink>
+
+          <NavLink to="/termsAndConditions" className={navClass}>
+            Terms and Conditions
           </NavLink>
         </nav>
 
@@ -72,7 +82,7 @@ const Header = () => {
       {/* Mobile Menu */}
       <div
         className={`overflow-hidden border-t border-white/10 bg-zinc-950 backdrop-blur-xl transition-all duration-300 lg:hidden ${
-          open ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          open ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
         }`}
       >
         <nav className="mx-auto flex max-w-7xl flex-col gap-1 p-4">
@@ -80,15 +90,27 @@ const Header = () => {
             Home
           </NavLink>
 
-          <NavLink to="/services" className={navClass} onClick={() => setOpen(false)}>
+          <NavLink
+            to="/services"
+            className={navClass}
+            onClick={() => setOpen(false)}
+          >
             Services
           </NavLink>
 
-          <NavLink to="/aboutUs" className={navClass} onClick={() => setOpen(false)}>
+          <NavLink
+            to="/aboutUs"
+            className={navClass}
+            onClick={() => setOpen(false)}
+          >
             About
           </NavLink>
 
-          <NavLink to="/contact" className={navClass} onClick={() => setOpen(false)}>
+          <NavLink
+            to="/contact"
+            className={navClass}
+            onClick={() => setOpen(false)}
+          >
             Contact
           </NavLink>
 

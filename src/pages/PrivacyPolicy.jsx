@@ -1,25 +1,16 @@
-import {
-  Database,
-  Settings2,
-  Cookie,
-  Share2,
-  ShieldCheck,
-  UserCog,
-  Baby,
-  RefreshCw,
-  Mail,
-} from "lucide-react";
+import { Database, Settings2, Share2, ShieldCheck, UserCog } from "lucide-react";
 
 // ---------------------------------------------------------------
 // 1. DATA
-// Fake content for "Lab7" (the same agency name used in your navbar
-// and footer). Kept separate from the markup so editing any clause
-// later never means touching JSX — same pattern as your
-// servicesData / pricingPlansData files.
+// The 5 sections a visitor actually needs to read or act on.
+// "Contact Us" was dropped as its own card here — it duplicates the
+// dedicated Contact section elsewhere on the site, so repeating it
+// on this page just added a second copy of the same info to scroll
+// past.
 //
-// Each section has a `slug` — a URL-safe id (no spaces) used as the
-// target for the sidebar/nav links below — and an `icon`, so every
-// section gets a small visual anchor instead of just a number.
+// Each section has a `slug` — a URL-safe id used as the target for
+// the sidebar/nav links below — and an `icon`, so every section gets
+// a small visual anchor instead of just a number.
 // ---------------------------------------------------------------
 const policySections = [
   {
@@ -38,15 +29,6 @@ const policySections = [
     body: [
       "We use the information you provide to respond to quote requests, deliver the services you've hired us for, send project updates, and improve our website and offerings.",
       "We do not use your personal information for anything beyond what's needed to run and improve Lab7's services.",
-    ],
-  },
-  {
-    slug: "cookies-and-tracking",
-    title: "Cookies & Tracking Technologies",
-    icon: Cookie,
-    body: [
-      "Our website uses cookies to remember your preferences and to understand which pages and services visitors find most useful.",
-      "You can disable cookies at any time through your browser settings — some parts of the site, like saved form progress, may not work as smoothly without them.",
     ],
   },
   {
@@ -76,49 +58,32 @@ const policySections = [
       "You may also opt out of marketing emails at any point using the unsubscribe link included in those emails.",
     ],
   },
-  {
-    slug: "childrens-privacy",
-    title: "Children's Privacy",
-    icon: Baby,
-    body: [
-      "Lab7's services are intended for businesses and individuals 18 years or older. We do not knowingly collect personal information from children.",
-    ],
-  },
-  {
-    slug: "changes-to-this-policy",
-    title: "Changes to This Policy",
-    icon: RefreshCw,
-    body: [
-      "We may update this Privacy Policy from time to time as our services evolve. Any changes will be posted on this page along with a revised \"last updated\" date.",
-    ],
-  },
 ];
-
-// Contact details — reused from your existing Contact section so
-// this page stays consistent with the rest of the site.
-const privacyContact = {
-  email: "mail@domain.com",
-  phone: "+91 1234567890",
-  address: "123 Street, NY, USA",
-};
 
 // ---------------------------------------------------------------
 // 2. SMALL REUSABLE PIECE
 //
-// One policy section, styled as its own frosted card (same recipe as
-// TeamCard / InfoCard / TestimonialCard: bg-white/[0.04] + a barely-
-// there border). `scroll-mt-24` matters here: it's what stops the
-// section from tucking in behind a sticky navbar when a nav link
-// jumps straight to it — without it, the top of the card would be
-// hidden right under the header.
+// One policy section, its own navy (#0A2239) card — like the Team
+// and Testimonial cards. `scroll-mt-24` stops the section from
+// tucking in behind a sticky navbar when a nav link jumps to it.
+//
+// This follows shadcn's actual Card anatomy more closely than the
+// last pass: a header block (icon + title) separated from the body
+// by a hairline rule, rather than icon/title/body all sharing one
+// undivided block of padding. That header/content split — plus a
+// hairline border and real elevation (shadow-sm at rest, shadow-md
+// on hover) instead of a lighter fill — is what reads as "shadcn"
+// rather than just "a rounded dark box."
 // ---------------------------------------------------------------
 function PolicyCard({ slug, title, icon: Icon, body }) {
   return (
     <div
       id={slug}
-      className="scroll-mt-24 rounded-xl border border-white/10 bg-white/[0.04] p-5 transition-all duration-200 hover:-translate-y-1 hover:border-blue-400/30 hover:bg-white/[0.07] sm:p-6"
+      className="scroll-mt-24 rounded-xl border border-white/10 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-400/30 hover:shadow-md"
+      style={{ backgroundColor: "#0A2239" }}
     >
-      <div className="flex items-center gap-3">
+      {/* Card header */}
+      <div className="flex items-center gap-3 border-b border-white/10 p-5 sm:p-6">
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400">
           <Icon className="h-4.5 w-4.5" />
         </span>
@@ -127,7 +92,8 @@ function PolicyCard({ slug, title, icon: Icon, body }) {
         </h3>
       </div>
 
-      <div className="mt-3 flex flex-col gap-3 sm:pl-12">
+      {/* Card content */}
+      <div className="flex flex-col gap-3 p-5 sm:p-6">
         {body.map((paragraph) => (
           <p
             key={paragraph.slice(0, 24)}
@@ -142,14 +108,15 @@ function PolicyCard({ slug, title, icon: Icon, body }) {
 }
 
 // One sidebar link — a plain anchor jumping to a section's id.
-// translate-x on hover gives a small, tactile "this is clickable" cue.
+// Styled for the light page background this section sits on, with
+// translate-x on hover as a small, tactile "this is clickable" cue.
 function SidebarLink({ slug, title, icon: Icon }) {
   return (
     <a
       href={`#${slug}`}
-      className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-400 transition-all duration-200 hover:translate-x-0.5 hover:bg-white/5 hover:text-white"
+      className="group flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-slate-500 transition-all duration-200 hover:translate-x-0.5 hover:bg-slate-100 hover:text-slate-900"
     >
-      <Icon className="h-4 w-4 shrink-0 text-blue-400/70 transition-colors duration-200 group-hover:text-blue-400" />
+      <Icon className="h-4 w-4 shrink-0 text-blue-500/70 transition-colors duration-200 group-hover:text-blue-500" />
       <span className="truncate">{title}</span>
     </a>
   );
@@ -159,32 +126,20 @@ function SidebarLink({ slug, title, icon: Icon }) {
 // 3. MAIN COMPONENT
 //
 // Layout, top to bottom / left to right:
-//   1. Heading + description — plain page background, outside the
-//      navy box, same "heading outside the box" rule used across
-//      the Services, Contact, and Team sections.
-//   2. The navy box, split in two on tablet/desktop (md+):
-//        - a sticky sidebar of quick-jump links on the left
-//        - the actual policy cards on the right
-//      On mobile, the sidebar becomes a horizontally scrollable pill
-//      row above the stacked cards instead — there's no room for a
-//      side column on a small screen, so the same links just move.
-//
-// No horizontal padding, max-width, or mx-auto is set on the section
-// itself, and no vertical margin either — the root layout already
-// wraps every page in `max-w-7xl mx-auto w-11/12 my-8 lg:my-16`, so
-// repeating any of that here would double it up. Only the padding
-// *inside* the box (p-6/p-8/p-10) and the gap before it (mt-10)
-// remain, since those are internal to this component.
+//   1. Heading + description — plain page background.
+//   2. Mobile-only pill nav — a horizontally scrollable row of quick
+//      jump links, shown below md where there's no room for a side
+//      column.
+//   3. md and up: a sticky sidebar of the same links on the left,
+//      policy cards (each its own navy card) on the right. Below md
+//      the sidebar is hidden and cards stack full-width, with the
+//      pill row above taking over navigation.
 // ---------------------------------------------------------------
 export default function PrivacyPolicy() {
   return (
     <section className="w-full">
-      {/* ---------- HEADING + DESCRIPTION — outside the box ---------- */}
+      {/* ---------- HEADING + DESCRIPTION ---------- */}
       <div className="mx-auto max-w-2xl text-center">
-        <span className="text-xs font-semibold uppercase tracking-wider text-blue-600">
-          Legal
-        </span>
-
         <h2 className="mt-2 text-balance text-2xl font-bold leading-tight tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
           Privacy Policy
         </h2>
@@ -197,84 +152,45 @@ export default function PrivacyPolicy() {
         <span className="mx-auto mt-4 block h-1 w-10 rounded-full bg-blue-500" />
 
         <p className="mt-4 text-xs font-medium text-slate-400">
-          Last updated: August 2, 2026
+          Last updated: August 2, 2026 — we'll revise this date whenever the
+          policy changes.
         </p>
       </div>
 
-      {/* ---------- THE BOX — dark navy background ---------- */}
-      <div
-        className="mt-10 overflow-hidden rounded-3xl sm:mt-12"
-        style={{ backgroundColor: "#0A2239" }}
-      >
-        {/* Mobile / tablet: horizontally scrollable pill nav.
-            Hidden from md upward, where the sidebar takes over instead. */}
-        <div className="flex gap-2 overflow-x-auto border-b border-white/10 p-4 md:hidden">
-          {policySections.map((section) => (
-            <a
-              key={section.slug}
-              href={`#${section.slug}`}
-              className="shrink-0 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 transition-colors duration-200 hover:border-blue-400/30 hover:bg-white/10 hover:text-white"
-            >
-              {section.title}
-            </a>
-          ))}
-        </div>
+      {/* ---------- MOBILE PILL NAV — hidden from md upward ---------- */}
+      <div className="mt-8 flex gap-2 overflow-x-auto pb-1 md:hidden">
+        {policySections.map((section) => (
+          <a
+            key={section.slug}
+            href={`#${section.slug}`}
+            className="shrink-0 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm transition-colors duration-200 hover:border-blue-400/40 hover:text-slate-900"
+          >
+            {section.title}
+          </a>
+        ))}
+      </div>
 
-        <div className="grid grid-cols-1 gap-8 p-6 sm:p-8 md:grid-cols-[220px_1fr] md:gap-10 md:p-10">
-          {/* Desktop / tablet sidebar — sticky so it stays in view
-              while the policy cards scroll past it. Hidden on mobile,
-              where the pill row above takes its place instead. */}
-          <nav className="hidden md:sticky md:top-24 md:block md:h-fit">
-            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-              On this page
-            </p>
-            <div className="flex flex-col gap-0.5">
-              {policySections.map((section) => (
-                <SidebarLink key={section.slug} {...section} />
-              ))}
-              <SidebarLink slug="contact-us" title="Contact Us" icon={Mail} />
-            </div>
-          </nav>
-
-          {/* Policy cards */}
-          <div className="flex flex-col gap-4">
+      {/* ---------- SIDEBAR + CARDS ---------- */}
+      <div className="mt-6 grid grid-cols-1 gap-8 md:mt-10 md:grid-cols-[220px_1fr] md:gap-10">
+        {/* Desktop / tablet sidebar — sticky so it stays in view while
+            the policy cards scroll past it. Hidden on mobile, where
+            the pill row above takes its place instead. */}
+        <nav className="hidden md:sticky md:top-24 md:block md:h-fit">
+          <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-slate-400">
+            On this page
+          </p>
+          <div className="flex flex-col gap-0.5">
             {policySections.map((section) => (
-              <PolicyCard key={section.slug} {...section} />
+              <SidebarLink key={section.slug} {...section} />
             ))}
-
-            {/* Contact card — same details as your Contact page, so
-                this stays consistent instead of listing different
-                info somewhere else on the site. */}
-            <div
-              id="contact-us"
-              className="scroll-mt-24 rounded-xl border border-blue-400/20 bg-white/[0.04] p-5 transition-all duration-200 hover:-translate-y-1 hover:border-blue-400/40 hover:bg-white/[0.07] sm:p-6"
-            >
-              <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/15 text-blue-400">
-                  <Mail className="h-4.5 w-4.5" />
-                </span>
-                <h3 className="text-base font-semibold tracking-tight text-white sm:text-lg">
-                  Contact Us
-                </h3>
-              </div>
-
-              <div className="mt-3 flex flex-col gap-1 sm:pl-12">
-                <p className="text-sm leading-relaxed text-slate-400">
-                  Questions about this policy, or want to exercise any of
-                  your rights above? Reach out any time:
-                </p>
-                <p className="mt-2 text-sm font-semibold text-white">
-                  {privacyContact.email}
-                </p>
-                <p className="text-sm font-semibold text-white">
-                  {privacyContact.phone}
-                </p>
-                <p className="text-sm text-slate-400">
-                  {privacyContact.address}
-                </p>
-              </div>
-            </div>
           </div>
+        </nav>
+
+        {/* Policy cards */}
+        <div className="flex flex-col gap-4">
+          {policySections.map((section) => (
+            <PolicyCard key={section.slug} {...section} />
+          ))}
         </div>
       </div>
     </section>

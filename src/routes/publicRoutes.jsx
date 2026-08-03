@@ -5,6 +5,8 @@ import AboutUs from "../pages/AboutUs";
 import Services from "../pages/Services";
 import Contact from "../pages/Contact";
 import Testimonials from "../pages/Testimonials";
+import PrivacyPolicy from "../pages/PrivacyPolicy";
+import TermsAndConditions from "../pages/TermsAndConditions";
 
 const publicRoutes = createBrowserRouter([
   {
@@ -30,6 +32,14 @@ const publicRoutes = createBrowserRouter([
       {
         path: "/testimonials",
         Component: Testimonials,
+      },
+      {
+        path: "/privacyPolicy",
+        Component: PrivacyPolicy,
+      },
+      {
+        path: "/termsAndConditions",
+        Component: TermsAndConditions,
       },
     ],
   },

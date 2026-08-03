@@ -37,18 +37,24 @@ const team = [
 // ---------------------------------------------------------------
 // 2. SMALL REUSABLE PIECE
 //
-// On a dark background, shadcn's dark-mode card recipe swaps a solid
-// white fill for a faint white overlay: bg-white/[0.04] + a barely-
-// there border (border-white/10). That's what gives the "frosted
-// panel" look instead of a hard block sitting on top of the navy.
+// Each card now carries the navy (#0A2239) background itself,
+// instead of the whole grid sitting on one shared navy panel.
+// That's what makes the gaps between cards read as "blank" — the
+// page background shows through the gutters, and only the card
+// footprint is navy.
 //
-// hover:-translate-y-1 + transition-all is the animation: the whole
-// card lifts slightly and its border brightens on mouse-over, while
-// the photo inside zooms in a touch (group-hover on the image).
+// The shadcn "Card" recipe is: rounded-xl border + a soft shadow
+// that lifts it off the page (shadow-sm at rest, shadow-md on
+// hover), rather than relying on a lighter overlay fill for depth.
+// border-white/10 keeps a hairline edge visible against the navy
+// so the card doesn't merge into a dark page background.
 // ---------------------------------------------------------------
 function TeamCard({ member }) {
   return (
-    <div className="group overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] transition-all duration-200 hover:-translate-y-1 hover:border-blue-400/30 hover:bg-white/[0.07]">
+    <div
+      className="group overflow-hidden rounded-xl border border-white/10 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-400/30 hover:shadow-md"
+      style={{ backgroundColor: "#0A2239" }}
+    >
       <div className="aspect-square w-full overflow-hidden bg-white/5">
         <img
           src={member.image}
@@ -69,25 +75,20 @@ function TeamCard({ member }) {
 // 3. MAIN COMPONENT
 //
 // Structure, top to bottom:
-//   1. Heading + description — plain page background, outside the
-//      navy box. Multiple team cards sit below it, so it follows
-//      the same "heading outside the box" rule used on the Services
-//      and Contact sections.
-//   2. The navy box — unchanged background color, holds only the
-//      team grid now.
+//   1. Heading + description — plain page background.
+//   2. The grid — no shared navy panel anymore. Each TeamCard
+//      brings its own navy background, so the gap-6 gutters between
+//      cards show the page background instead of navy.
 //
 // No horizontal padding, max-width, or mx-auto is set here, and no
 // vertical margin either — the root layout already wraps every page
 // in `max-w-7xl mx-auto w-11/12 my-8 lg:my-16`, so repeating any of
-// that in this component would double it up. The only spacing left
-// in this file is padding *inside* the navy box (p-6/p-8/p-10) and
-// the gap between the heading and the box (mt-10) — both of those
-// are internal to this component, not page-level layout.
+// that in this component would double it up.
 // ---------------------------------------------------------------
 export default function TeamMembers() {
   return (
     <section className="w-full">
-       {/* ---------- HEADING + DESCRIPTION — outside the box ---------- */}
+      {/* ---------- HEADING + DESCRIPTION ---------- */}
       <div className="mx-auto max-w-2xl space-y-4 mb-6">
         <h2 className="text-balance text-center text-2xl font-bold leading-tight tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
           Build faster with trusted IT experts
@@ -101,18 +102,11 @@ export default function TeamMembers() {
         <span className="mx-auto block h-1 w-10 rounded-full bg-blue-500" />
       </div>
 
-      {/* ---------- THE BOX — same #0A2239 background as before ---------- */}
-      <div
-        className="mt-10 overflow-hidden rounded-3xl sm:mt-12"
-        style={{ backgroundColor: "#0A2239" }}
-      >
-        <div className="p-6 sm:p-8 md:p-10">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {team.map((member) => (
-              <TeamCard key={member.id} member={member} />
-            ))}
-          </div>
-        </div>
+      {/* ---------- GRID — no shared panel, gaps stay blank ---------- */}
+      <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {team.map((member) => (
+          <TeamCard key={member.id} member={member} />
+        ))}
       </div>
     </section>
   );
