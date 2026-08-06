@@ -86,7 +86,7 @@ export default function Header() {
               Lab7
             </h1>
             <p className="mt-1 text-xs text-base-content/50">
-              Digital Agency
+              IT Agency
             </p>
           </div>
         </NavLink>

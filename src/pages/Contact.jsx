@@ -16,8 +16,8 @@ const infoCards = [
     icon: Mail,
     title: "Email",
     subtitle: "Get a response within 24 hours",
-    value: "hello@company.com",
-    href: "mailto:hello@company.com",
+    value: "hello@mobile.com",
+    href: "mailto:hello@mobile.com",
   },
   {
     icon: MessageCircle,
@@ -135,7 +135,7 @@ const Contact = () => {
     firstName: "",
     lastName: "",
     email: "",
-    company: "",
+    mobile: "",
     message: "",
   });
   const [agreed, setAgreed] = useState(false);
@@ -153,7 +153,13 @@ const Contact = () => {
     // Replace with your real submit call.
     setTimeout(() => {
       setStatus("sent");
-      setForm({ firstName: "", lastName: "", email: "", company: "", message: "" });
+      setForm({
+        firstName: "",
+        lastName: "",
+        email: "",
+        mobile: "",
+        message: "",
+      });
       setAgreed(false);
     }, 1400);
   };
@@ -274,7 +280,12 @@ const Contact = () => {
                   <motion.span
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
-                    transition={{ type: "spring", stiffness: 260, damping: 16, delay: 0.1 }}
+                    transition={{
+                      type: "spring",
+                      stiffness: 260,
+                      damping: 16,
+                      delay: 0.1,
+                    }}
                     className="flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success"
                   >
                     <CheckCircle2 size={28} />
@@ -310,20 +321,27 @@ const Contact = () => {
                       Send us a message
                     </h3>
                     <p className="mt-1 text-sm text-base-content/55">
-                      Fill out the form below and we'll get back to you
-                      within 24 hours.
+                      Fill out the form below and we'll get back to you within
+                      24 hours.
                     </p>
                   </motion.div>
 
                   <div className="mt-6 flex-1 space-y-5">
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
                       <motion.div variants={fieldItem} className="space-y-1.5">
-                        <label htmlFor="firstName" className="text-sm font-medium text-base-content">
+                        <label
+                          htmlFor="firstName"
+                          className="text-sm font-medium text-base-content"
+                        >
                           First Name <span className="text-error">*</span>
                         </label>
                         <motion.input
                           whileFocus={{ scale: 1.01 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 20,
+                          }}
                           id="firstName"
                           name="firstName"
                           type="text"
@@ -336,12 +354,19 @@ const Contact = () => {
                       </motion.div>
 
                       <motion.div variants={fieldItem} className="space-y-1.5">
-                        <label htmlFor="lastName" className="text-sm font-medium text-base-content">
+                        <label
+                          htmlFor="lastName"
+                          className="text-sm font-medium text-base-content"
+                        >
                           Last Name <span className="text-error">*</span>
                         </label>
                         <motion.input
                           whileFocus={{ scale: 1.01 }}
-                          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 300,
+                            damping: 20,
+                          }}
                           id="lastName"
                           name="lastName"
                           type="text"
@@ -355,47 +380,68 @@ const Contact = () => {
                     </div>
 
                     <motion.div variants={fieldItem} className="space-y-1.5">
-                      <label htmlFor="email" className="text-sm font-medium text-base-content">
+                      <label
+                        htmlFor="email"
+                        className="text-sm font-medium text-base-content"
+                      >
                         Email Address <span className="text-error">*</span>
                       </label>
                       <motion.input
                         whileFocus={{ scale: 1.01 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
                         id="email"
                         name="email"
                         type="email"
                         required
                         value={form.email}
                         onChange={handleChange}
-                        placeholder="john@company.com"
+                        placeholder="john@mobile.com"
                         className={inputClasses}
                       />
                     </motion.div>
 
                     <motion.div variants={fieldItem} className="space-y-1.5">
-                      <label htmlFor="company" className="text-sm font-medium text-base-content">
-                        Company
+                      <label
+                        htmlFor="mobile"
+                        className="text-sm font-medium text-base-content"
+                      >
+                        Mobile Number
                       </label>
                       <motion.input
                         whileFocus={{ scale: 1.01 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                        id="company"
-                        name="company"
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
+                        id="mobile"
+                        name="mobile"
                         type="text"
-                        value={form.company}
+                        value={form.mobile}
                         onChange={handleChange}
-                        placeholder="Your Company"
+                        placeholder="Your Mobile Number"
                         className={inputClasses}
                       />
                     </motion.div>
 
                     <motion.div variants={fieldItem} className="space-y-1.5">
-                      <label htmlFor="message" className="text-sm font-medium text-base-content">
+                      <label
+                        htmlFor="message"
+                        className="text-sm font-medium text-base-content"
+                      >
                         Message <span className="text-error">*</span>
                       </label>
                       <motion.textarea
                         whileFocus={{ scale: 1.01 }}
-                        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 300,
+                          damping: 20,
+                        }}
                         id="message"
                         name="message"
                         rows={4}
@@ -420,11 +466,17 @@ const Contact = () => {
                       />
                       <span>
                         I agree to the{" "}
-                        <a href="#" className="font-medium text-base-content hover:text-primary">
+                        <a
+                          href="#"
+                          className="font-medium text-base-content hover:text-primary"
+                        >
                           Terms of Service
                         </a>{" "}
                         and{" "}
-                        <a href="#" className="font-medium text-base-content hover:text-primary">
+                        <a
+                          href="#"
+                          className="font-medium text-base-content hover:text-primary"
+                        >
                           Privacy Policy
                         </a>
                       </span>

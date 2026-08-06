@@ -79,7 +79,7 @@ const Footer = () => {
             <h3 className="text-sm font-medium tracking-tight text-base-content">
               Lab<span className="text-base-content/40">7</span>
             </h3>
-            <p className="text-xs text-base-content/45">Digital Agency</p>
+            <p className="text-xs text-base-content/45">IT Agency</p>
           </div>
         </motion.div>
 

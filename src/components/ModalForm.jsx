@@ -1,4 +1,4 @@
-const ClientForm = () => {
+const ModalForm = () => {
   return (
     <div className="flex justify-center items-center">
       <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
@@ -14,6 +14,11 @@ const ClientForm = () => {
               className="input"
               placeholder="Your Mobile / Whatsapp"
             />
+            <label className="label">Message</label>
+            <textarea
+              className="textarea h-24"
+              placeholder="Your Message"
+            ></textarea>
             <button className="btn btn-neutral mt-4">
               Book Free Consultation
             </button>
@@ -24,4 +29,4 @@ const ClientForm = () => {
   );
 };
 
-export default ClientForm;
+export default ModalForm;

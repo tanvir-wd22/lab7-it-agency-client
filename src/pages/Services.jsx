@@ -1,136 +1,111 @@
 import { motion } from "motion/react";
+import Heading from "../components/Heading";
 import ServiceCard from "../components/ServiceCard";
 import { servicesData } from "../data/servicesData";
-import Heading from "../components/Heading";
 
 const containerVariants = {
   hidden: {},
-  show: { transition: { staggerChildren: 0.08 } },
+  show: {
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
 };
 
 const itemVariants = {
-  hidden: { opacity: 0, y: 24, scale: 0.97 },
+  hidden: {
+    opacity: 0,
+    y: 24,
+    scale: 0.97,
+  },
   show: {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { duration: 0.5, ease: "easeOut" },
+    transition: {
+      duration: 0.5,
+      ease: [0.22, 1, 0.36, 1],
+    },
   },
 };
 
 const Services = () => {
   return (
-    <section className="relative w-full overflow-hidden">
-      {/*
-        Gradient-ring border.
-        `--gradient-angle` is animated so the conic-gradient itself spins in
-        place — the element that holds it never rotates or resizes.
-        The ring shape comes from mask-composite: exclude (content-box vs
-        padding-box), not from clipping an oversized square, so every edge
-        — including the left, at any card aspect ratio — is guaranteed
-        full coverage.
-      */}
-      <style>{`
-        @property --gradient-angle {
-          syntax: '<angle>';
-          initial-value: 0deg;
-          inherits: false;
-        }
-        @keyframes spin-gradient-angle {
-          to { --gradient-angle: 360deg; }
-        }
-        .service-card-ring {
-          background: conic-gradient(
-            from var(--gradient-angle),
-            var(--color-primary),
-            var(--color-secondary),
-            var(--color-accent),
-            var(--color-primary)
-          );
-          animation: spin-gradient-angle 3s linear infinite;
-          -webkit-mask:
-            linear-gradient(#fff 0 0) content-box,
-            linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .service-card-ring { animation: none; }
-        }
-      `}</style>
-
-      {/* Ambient background glow */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-32 left-1/4 -z-10 h-72 w-72 rounded-full bg-primary/20 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-24 right-1/4 -z-10 h-72 w-72 rounded-full bg-secondary/15 blur-3xl"
-      />
-
+    <section className="w-full bg-base-100 px-4 sm:px-6 lg:px-8">
       {/* Heading */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true, amount: 0.3 }}
-        transition={{ duration: 0.6 }}
-        className="mx-auto mb-6 max-w-2xl space-y-4"
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="mx-auto mb-10 max-w-2xl text-center sm:mb-12"
       >
         <Heading
           title="Real problems, real outcomes."
           description="We don't showcase logos — we showcase results."
         />
-        <motion.span
-          initial={{ width: 0 }}
-          whileInView={{ width: 40 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mx-auto block h-1 rounded-full bg-gradient-to-r from-primary via-secondary to-accent"
-        />
       </motion.div>
 
-      {/* Grid */}
+      {/* Cards */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         whileInView="show"
         viewport={{ once: true, amount: 0.15 }}
-        className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3"
+        className="mx-auto grid max-w-7xl grid-cols-1 gap-5 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3"
       >
         {servicesData.map((item) => (
           <motion.div
             key={item.id}
             variants={itemVariants}
-            whileHover={{ y: -6, transition: { duration: 0.2 } }}
+            whileHover={{
+              y: -4,
+              scale: 1.015,
+              transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] },
+            }}
             whileTap={{ scale: 0.99 }}
-            className="group relative h-full"
+            className="group relative h-full rounded-2xl"
           >
-            {/* Base card surface — the actual card. Thin border + soft
-                shadow, shadcn-style, no filled background panel. */}
-            <div
-              className="
-                relative h-full overflow-hidden rounded-2xl
-                border border-base-300 bg-base-100
-                shadow-sm
-                transition-shadow duration-300
-                group-hover:shadow-xl group-hover:shadow-primary/5
-              "
-            >
-              <ServiceCard item={item} />
-            </div>
+            {/* Outer shell: clips the oversized rotating gradient behind it
+                down to just a thin 2px edge (via p-[2px] + overflow-hidden).
+                No mask-composite anywhere — this only relies on overflow
+                clipping, so it can't silently fail to render. */}
+            <div className="relative h-full overflow-hidden rounded-2xl p-[2px]">
+              {/* Gradient layer — deliberately oversized (inset -100%) and
+                  always rotating. At rest it's opacity-0 so nothing shows;
+                  on hover it fades in already mid-spin, reading as "running". */}
+              <motion.div
+                className="
+                  absolute -inset-full
+                  opacity-0
+                  transition-opacity duration-300
+                  group-hover:opacity-100
+                "
+                style={{
+                  background:
+                    "conic-gradient(from 0deg, var(--color-primary), var(--color-secondary), var(--color-primary))",
+                }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+              />
 
-            {/* Gradient ring — sits on top, exact 1px ring via mask,
-                fades in on hover. Cannot leave a gap on any edge. */}
-            <div
-              aria-hidden="true"
-              className="
-                service-card-ring
-                pointer-events-none absolute inset-0 rounded-2xl p-px
-                opacity-0 transition-opacity duration-300
-                group-hover:opacity-100
-              "
-            />
+              {/* Card surface sits on top, covering everything except the
+                  2px edge reserved by the outer shell's padding */}
+              <div
+                className="
+                  relative flex h-full
+                  overflow-hidden rounded-[14px]
+                  border border-base-300/70
+                  bg-base-200/95
+                  backdrop-blur-sm
+                  transition-colors duration-300
+                  group-hover:border-transparent
+                  group-hover:bg-base-200
+                "
+              >
+                <ServiceCard item={item} />
+              </div>
+            </div>
           </motion.div>
         ))}
       </motion.div>
