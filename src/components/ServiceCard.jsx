@@ -2,8 +2,10 @@ import { useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import ClientForm from "./ClientForm";
 
+// No border, background panel, or hover-lift here — the Services.jsx
+// wrapper already owns the card surface (border, shadow, gradient ring).
+// This component only handles what's local to it: image, copy, CTA, modal.
 export default function ServiceCard({ item }) {
-  // Pull out the fields we need from "item", with some defaults.
   const {
     image,
     imageAlt = "Service image",
@@ -13,62 +15,34 @@ export default function ServiceCard({ item }) {
     ctaLabel = "Learn More",
   } = item;
 
-  // A ref gives us a direct handle to this card's <dialog> element.
-  // Using a ref (instead of document.getElementById) means each
-  // ServiceCard has its own modal — no ID clashes if you render
-  // several cards on the same page.
   const modalRef = useRef(null);
 
   return (
-    <div
-      className="
-        group w-full overflow-hidden rounded-2xl
-        border border-white/10
-        bg-[#0A2239]
-        p-3
-        shadow-sm
-        transition-all duration-300
-        hover:-translate-y-1
-        hover:border-white/20
-        hover:shadow-xl
-      "
-    >
+    <div className="flex h-full w-full flex-col p-3">
       {/* Image */}
-      <div className="relative overflow-hidden rounded-xl">
+      <div className="group relative overflow-hidden rounded-xl">
         <img
           src={image}
           alt={imageAlt}
-          className="
-            h-52 w-full object-cover
-            transition-transform duration-500
-            group-hover:scale-105
-          "
+          className="h-52 w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-
-        {/* Image overlay */}
-        <div className="absolute inset-0 bg-linear-to-t from-black/30 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/40 to-transparent" />
       </div>
 
       {/* Content */}
-      <div className="p-3 sm:p-4">
-        {/* Badges */}
+      <div className="flex flex-1 flex-col p-3 sm:p-4">
         {badges.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
             {badges.map((badge) => {
               const Icon = badge.icon;
-
               return (
                 <span
                   key={badge.label}
                   className="
                     inline-flex items-center gap-1.5
-                    rounded-full
-                    border border-white/10
-                    bg-white/5
-                    px-3 py-1
-                    text-xs font-medium
-                    text-white/80
-                    backdrop-blur-sm
+                    rounded-full border border-base-300
+                    bg-base-200/60 px-3 py-1
+                    text-xs font-medium text-base-content/70
                   "
                 >
                   {Icon && <Icon size={13} />}
@@ -79,43 +53,27 @@ export default function ServiceCard({ item }) {
           </div>
         )}
 
-        {/* Title */}
-        <h3
-          className="
-            text-lg font-semibold
-            tracking-tight
-            text-white
-            sm:text-xl
-          "
-        >
+        <h3 className="text-lg font-semibold tracking-tight text-base-content sm:text-xl">
           {title}
         </h3>
 
-        {/* Description */}
-        <p
-          className="
-            mt-3
-            text-sm
-            leading-6
-            text-white/70
-          "
-        >
+        <p className="mt-3 text-sm leading-6 text-base-content/60">
           {description}
         </p>
 
-        {/* CTA button — just one button now. Clicking it opens the modal. */}
+        {/* CTA — shadcn Button-style: solid, small radius, focus ring */}
         <button
           type="button"
           onClick={() => modalRef.current?.showModal()}
           className="
-            mt-6 flex w-full items-center justify-center gap-2
-            rounded-xl
-            bg-white
-            px-4 py-2.5
-            text-sm font-medium
-            text-[#0A2239]
-            transition
-            hover:bg-white/90
+            mt-auto flex w-full items-center justify-center gap-2
+            rounded-lg bg-primary px-4 py-2.5
+            text-sm font-medium text-primary-content
+            transition-colors duration-200
+            hover:bg-primary/90
+            focus-visible:outline-none focus-visible:ring-2
+            focus-visible:ring-primary focus-visible:ring-offset-2
+            focus-visible:ring-offset-base-100
           "
         >
           {ctaLabel}
@@ -123,20 +81,15 @@ export default function ServiceCard({ item }) {
         </button>
       </div>
 
-      {/* DaisyUI modal. `ref={modalRef}` is how the button above finds it. */}
       <dialog ref={modalRef} className="modal modal-bottom sm:modal-middle">
-        <div className="modal-box">
-          {/* DaisyUI's standard close button, top-right corner */}
+        <div className="modal-box border border-base-300 shadow-xl">
           <form method="dialog">
             <button className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2">
               ✕
             </button>
           </form>
-
           <ClientForm />
         </div>
-
-        {/* Clicking the backdrop closes the modal */}
         <form method="dialog" className="modal-backdrop">
           <button>close</button>
         </form>

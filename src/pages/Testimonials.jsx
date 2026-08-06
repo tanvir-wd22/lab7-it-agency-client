@@ -1,137 +1,214 @@
-import { Quote } from "lucide-react";
+import { motion } from "motion/react";
+import {
+  Sparkles,
+  Zap,
+  Orbit,
+  Waves,
+  Flame,
+  Leaf,
+  Compass,
+  Gem,
+} from "lucide-react";
+import Heading from "../components/Heading";
 
-// ---------------------------------------------------------------
-// 1. DATA
-// Keep testimonials separate from the markup — adding, removing, or
-// reordering a client quote later means editing this array only.
-// `featured` marks the middle card so it can get its own background
-// and slightly larger footprint without hardcoding "the 2nd item"
-// logic into the JSX below.
-// ---------------------------------------------------------------
+// Static class strings (not template-built) so Tailwind's JIT scanner
+// picks them up — dynamic `bg-${color}/15` strings would be invisible to it.
+const colorMap = {
+  primary: "bg-primary/15",
+  secondary: "bg-secondary/15",
+  accent: "bg-accent/15",
+  info: "bg-info/15",
+  warning: "bg-warning/15",
+  success: "bg-success/15",
+};
+
 const testimonials = [
   {
-    id: 1,
-    name: "Michael Anderson",
-    role: "Profession",
+    name: "Brad Hanna",
+    handle: "@Marko",
+    company: "Nimbus",
+    icon: Sparkles,
+    color: "secondary",
     quote:
-      "The Information Technology (IT) field encompasses a wide range of professions and career opportunities. IT professionals work with technology systems and software to design, develop, manage, and maintain various aspects of computing and information systems.",
-    avatar: "https://i.pravatar.cc/80?img=13",
-    featured: false,
+      "Studio has improved my workflow. The components are appealing and perform well right out of the box.",
   },
   {
-    id: 2,
-    name: "Emily Davis",
-    role: "Business Women",
+    name: "Brad Hanna",
+    handle: "@Marko",
+    company: "Orbital",
+    icon: Orbit,
+    color: "success",
     quote:
-      '"Business women" refers to women who are actively engaged in various aspects of the business world. This can include women who are entrepreneurs, business owners, corporate executives, managers, professionals, or employees in various industries.',
-    avatar: "https://i.pravatar.cc/80?img=48",
-    featured: true,
+      "Using Studio has made my projects intuitive and efficient. The documentation is clear and thorough.",
   },
   {
-    id: 3,
-    name: "James Wilson",
-    role: "Application Development",
+    name: "Brad Hanna",
+    handle: "@Marko",
+    company: "Flux",
+    icon: Zap,
+    color: "info",
     quote:
-      "Application development refers to the process of creating software applications for various platforms and devices, such as mobile phones, desktop computers, web browsers, and more.",
-    avatar: "https://i.pravatar.cc/80?img=15",
-    featured: false,
+      "The community around Studio is fantastic! I've received support, making my experience so much smoother.",
+  },
+  {
+    name: "Ella Johnson",
+    handle: "@EllaJ",
+    company: "Verve",
+    icon: Flame,
+    color: "warning",
+    quote:
+      "Using Studio has made my projects more efficient, with clear documentation and a great component set.",
+  },
+  {
+    name: "Marcus Lee",
+    handle: "@mlee",
+    company: "Solace",
+    icon: Waves,
+    color: "accent",
+    quote:
+      "The build quality is outstanding. Every component just works, and the theming system saved us weeks.",
+  },
+  {
+    name: "Priya Nair",
+    handle: "@priyan",
+    company: "Compass",
+    icon: Compass,
+    color: "primary",
+    quote:
+      "Support response time is incredible. We shipped our redesign twice as fast using this component set.",
+  },
+  {
+    name: "Tom Reyes",
+    handle: "@treyes",
+    company: "Meadow",
+    icon: Leaf,
+    color: "success",
+    quote:
+      "Clean, accessible, and genuinely well thought out. It's rare to find a kit this polished out of the box.",
+  },
+  {
+    name: "Aiko Sato",
+    handle: "@aikos",
+    company: "Facet",
+    icon: Gem,
+    color: "secondary",
+    quote:
+      "The attention to detail in every state — hover, focus, loading — is what sold the whole team on this.",
   },
 ];
 
-// ---------------------------------------------------------------
-// 2. SMALL REUSABLE PIECE
-//
-// Each card now carries its own navy background (#0A2239), like the
-// Team and Contact cards — so the gaps between the 3 cards show the
-// page background, not one shared panel.
-//
-// The featured (middle) card gets a lighter navy — #123A5E, a step
-// up in lightness from the same navy family rather than a clashing
-// color — so it reads as "the same palette, promoted" next to its
-// two neighbors. It also sits a bit taller (extra padding + a small
-// negative top margin on larger screens) and picks up a bolder
-// border/shadow so it visually leads the row.
-//
-// Shadcn's card recipe drives the depth here: a hairline border plus
-// real elevation (shadow-sm at rest, shadow-md/lg on hover) instead
-// of a lighter fill doing the work of separating card from page.
-// ---------------------------------------------------------------
-function TestimonialCard({ name, role, quote, avatar, featured }) {
+const TestimonialCard = ({ item }) => {
+  const Icon = item.icon;
+  const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
+    item.name
+  )}&backgroundType=solid`;
+
   return (
-    <div
-      className={`relative flex flex-col gap-4 rounded-xl border p-6 shadow-sm transition-all duration-200 hover:-translate-y-1 ${
-        featured
-          ? "border-blue-400/40 p-7 shadow-md hover:border-blue-400/60 hover:shadow-lg lg:-mt-4 lg:mb-4"
-          : "border-white/10 hover:border-blue-400/30 hover:shadow-md"
-      }`}
-      style={{ backgroundColor: featured ? "#123A5E" : "#0A2239" }}
+    <motion.div
+      whileHover={{ y: -6 }}
+      transition={{ type: "spring", stiffness: 300, damping: 22 }}
+      className="w-[280px] shrink-0 px-3 sm:w-[300px]"
     >
-      {/* Quote icon — purely decorative, tells the eye "this is a
-          quote" before you even read the text. aria-hidden hides it
-          from screen readers since it carries no real information. */}
-      <Quote
-        aria-hidden="true"
-        className={`h-6 w-6 rotate-180 ${
-          featured ? "text-blue-300/50" : "text-blue-400/40"
-        }`}
-      />
+      {/* Colored panel: logo + speech bubble */}
+      <div
+        className={`relative rounded-2xl border border-base-300/50 p-5 pb-6 ${colorMap[item.color]}`}
+      >
+        <div className="flex items-center gap-2 text-base-content">
+          <Icon size={20} strokeWidth={2.25} />
+          <span className="text-base font-bold tracking-tight">
+            {item.company}
+          </span>
+        </div>
 
-      <p className="text-sm leading-relaxed text-slate-300">{quote}</p>
+        <div className="relative mt-5 rounded-xl bg-neutral p-4 text-sm leading-6 text-neutral-content shadow-sm">
+          {item.quote}
+          {/* Speech-bubble tail */}
+          <span
+            aria-hidden="true"
+            className="absolute -bottom-2 left-6 h-4 w-4 rotate-45 rounded-[3px] bg-neutral"
+          />
+        </div>
+      </div>
 
-      <div className="mt-auto flex items-center gap-3 border-t border-white/10 pt-4">
+      {/* Avatar row — sits below the colored panel, on the page background */}
+      <div className="mt-5 flex items-center gap-3 px-1">
         <img
-          src={avatar}
-          alt={name}
-          className="h-11 w-11 rounded-full object-cover"
+          src={avatarUrl}
+          alt={item.name}
+          className="h-9 w-9 shrink-0 rounded-full border border-base-300 bg-base-200"
         />
-        <div>
-          <p className="text-sm font-semibold text-blue-400">{name}</p>
-          <p className="text-xs uppercase tracking-wide text-slate-500">
-            {role}
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-base-content">
+            {item.name}
+          </p>
+          <p className="truncate text-xs text-base-content/45">
+            {item.handle}
           </p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
-}
+};
 
-// ---------------------------------------------------------------
-// 3. MAIN COMPONENT
-//
-// Structure, top to bottom:
-//   1. Heading + description — plain page background.
-//   2. The grid — no shared navy panel anymore. Each card brings its
-//      own background (see TestimonialCard), so the gap-6 gutters
-//      between them show the page background instead of navy.
-//
-// No horizontal padding, max-width, or mx-auto is set here, and no
-// vertical margin either — the root layout already wraps every page
-// in `max-w-7xl mx-auto w-11/12 my-8 lg:my-16`, so repeating any of
-// that in this component would double it up.
-// ---------------------------------------------------------------
-export default function Testimonials() {
+const Testimonials = () => {
+  // Duplicated once so the CSS loop from 0% to -50% is seamless.
+  const track = [...testimonials, ...testimonials];
+
   return (
-    <section className="w-full">
-      {/* ---------- HEADING + DESCRIPTION ---------- */}
-      <div className="mx-auto max-w-2xl space-y-4 mb-6">
-        <h2 className="text-balance text-center text-2xl font-bold leading-tight tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
-          Build faster with trusted IT experts
-        </h2>
+    <section className="relative w-full overflow-hidden">
+      <style>{`
+        @keyframes marquee-scroll {
+          from { transform: translateX(0); }
+          to { transform: translateX(-50%); }
+        }
+        .marquee-track {
+          animation: marquee-scroll 38s linear infinite;
+        }
+        .marquee-track:hover {
+          animation-play-state: paused;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .marquee-track { animation: none; }
+        }
+      `}</style>
 
-        <p className="mx-auto text-justify text-balance text-base leading-relaxed text-slate-500 sm:text-lg md:text-xl">
-          From cloud infrastructure to custom software, we partner with growing
-          teams to ship reliable technology that scales with your business.
-        </p>
+      {/* Heading */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.3 }}
+        transition={{ duration: 0.5 }}
+        className="mx-auto mb-12 max-w-2xl px-4 text-center sm:text-left"
+      >
+        <Heading
+          title="Success Speaks For Itself"
+          description="Predictive analytics has really made our processes smoother and boosted our business results a ton!"
+        />
+      </motion.div>
 
-        <span className="mx-auto block h-1 w-10 rounded-full bg-blue-500" />
-      </div>
-
-      {/* ---------- GRID — no shared panel, gaps stay blank ---------- */}
-      <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-3 lg:items-center">
-        {testimonials.map((item) => (
-          <TestimonialCard key={item.id} {...item} />
-        ))}
-      </div>
+      {/* Marquee — edge-fade mask is the premium touch that keeps the
+          cutoff cards from looking abrupt at the container edges. */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true, amount: 0.2 }}
+        transition={{ duration: 0.6, delay: 0.1 }}
+        className="relative w-full"
+        style={{
+          WebkitMaskImage:
+            "linear-gradient(to right, transparent, black 6%, black 94%, transparent)",
+          maskImage:
+            "linear-gradient(to right, transparent, black 6%, black 94%, transparent)",
+        }}
+      >
+        <div className="marquee-track flex w-max py-2">
+          {track.map((item, i) => (
+            <TestimonialCard key={`${item.name}-${i}`} item={item} />
+          ))}
+        </div>
+      </motion.div>
     </section>
   );
-}
+};
+
+export default Testimonials;

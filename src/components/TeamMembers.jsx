@@ -1,113 +1,290 @@
-// ---------------------------------------------------------------
-// 1. DATA
-// Keep the team list separate from the markup — adding or removing
-// a person later means editing this array only.
-// ---------------------------------------------------------------
-const team = [
-  {
-    id: 1,
-    name: "Alex Taylor",
-    role: "Engineer",
-    image:
-      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    id: 2,
-    name: "Lisa Patel",
-    role: "Professor",
-    image:
-      "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    id: 3,
-    name: "Rachel Taylor",
-    role: "Scientist",
-    image:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    id: 4,
-    name: "James Wilson",
-    role: "Designer",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
-  },
+
+import {
+  CheckSquare,
+  Square,
+  Plus,
+  Send,
+  Mic,
+  User,
+  FileText,
+  ListChecks,
+  Link2,
+  Star,
+  Users,
+} from "lucide-react";
+
+/**
+ * ABOUT US — BENTO GRID
+ * -----------------------
+ * Inspired by dark "glass card" bento layouts (checklist card, schedule
+ * card, big stat circle, chat card, notes card, avatar-cluster card,
+ * nested-project card) — reworked here as an About Us page.
+ *
+ * Page background is light. Every card is a small dark "island" with its
+ * own soft glow, similar to a premium shadcn/ui marketing page.
+ *
+ * Written to stay easy to read for beginners:
+ *  - Content for each mock (checklist, chat, docs, team cards) is a small
+ *    array right above where it's used — edit those to change the copy.
+ *  - No state, no extra logic, just JSX + Tailwind classes.
+ *  - Every card is a single self-contained block with a comment above it.
+ */
+
+// ---------------------------------------------------------------------------
+// Small bits of content used inside the cards — edit these freely
+// ---------------------------------------------------------------------------
+
+const APPROACH_STEPS = [
+  { label: "Discovery call", done: true },
+  { label: "Kickoff workshop", done: false },
+  { label: "Weekly demo", done: false },
 ];
 
-// ---------------------------------------------------------------
-// 2. SMALL REUSABLE PIECE
-//
-// Each card now carries the navy (#0A2239) background itself,
-// instead of the whole grid sitting on one shared navy panel.
-// That's what makes the gaps between cards read as "blank" — the
-// page background shows through the gutters, and only the card
-// footprint is navy.
-//
-// The shadcn "Card" recipe is: rounded-xl border + a soft shadow
-// that lifts it off the page (shadow-sm at rest, shadow-md on
-// hover), rather than relying on a lighter overlay fill for depth.
-// border-white/10 keeps a hairline edge visible against the navy
-// so the card doesn't merge into a dark page background.
-// ---------------------------------------------------------------
-function TeamCard({ member }) {
-  return (
-    <div
-      className="group overflow-hidden rounded-xl border border-white/10 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-blue-400/30 hover:shadow-md"
-      style={{ backgroundColor: "#0A2239" }}
-    >
-      <div className="aspect-square w-full overflow-hidden bg-white/5">
-        <img
-          src={member.image}
-          alt={member.name}
-          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-        />
-      </div>
+const DOCS = [
+  { icon: FileText, title: "Company handbook", subtitle: "How we work, in one doc" },
+  { icon: ListChecks, title: "Onboarding checklist", subtitle: "Everything for week one" },
+  { icon: Link2, title: "Culture doc", subtitle: "What we value, and why" },
+];
 
-      <div className="border-t border-white/10 px-4 py-4">
-        <p className="text-sm font-semibold text-white">{member.name}</p>
-        <p className="mt-0.5 text-sm text-slate-400">{member.role}</p>
-      </div>
-    </div>
-  );
-}
+const TEAMS = [
+  { name: "Design", members: "6 members" },
+  { name: "Engineering", members: "8 members" },
+];
 
-// ---------------------------------------------------------------
-// 3. MAIN COMPONENT
-//
-// Structure, top to bottom:
-//   1. Heading + description — plain page background.
-//   2. The grid — no shared navy panel anymore. Each TeamCard
-//      brings its own navy background, so the gap-6 gutters between
-//      cards show the page background instead of navy.
-//
-// No horizontal padding, max-width, or mx-auto is set here, and no
-// vertical margin either — the root layout already wraps every page
-// in `max-w-7xl mx-auto w-11/12 my-8 lg:my-16`, so repeating any of
-// that in this component would double it up.
-// ---------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
 export default function TeamMembers() {
   return (
-    <section className="w-full">
-      {/* ---------- HEADING + DESCRIPTION ---------- */}
-      <div className="mx-auto max-w-2xl space-y-4 mb-6">
-        <h2 className="text-balance text-center text-2xl font-bold leading-tight tracking-tight text-slate-900 sm:text-3xl lg:text-4xl">
-          Build faster with trusted IT experts
-        </h2>
+    <div className="min-h-screen bg-zinc-50">
+      {/* Load two fonts: bold display face for the headline, regular
+          body face for everything else. */}
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+        .font-display { font-family: 'Space Grotesk', sans-serif; }
+        .font-body { font-family: 'Inter', sans-serif; }
+      `}</style>
 
-        <p className="mx-auto text-justify text-balance text-base leading-relaxed text-slate-500 sm:text-lg md:text-xl">
-          From cloud infrastructure to custom software, we partner with growing
-          teams to ship reliable technology that scales with your business.
-        </p>
+      <div className="font-body">
+        {/* =================================================================
+            HEADLINE
+        ================================================================= */}
+        <div className="mx-auto max-w-4xl px-6 pb-16 pt-24">
+          <h1 className="font-display text-5xl font-bold tracking-tight text-zinc-900 sm:text-6xl md:text-7xl">
+            About Orbit
+          </h1>
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-zinc-500">
+            We build the office your team never has to commute to. Today,
+            Orbit is home to thousands of remote teams around the world —
+            soon, Orbit AI will make it the smartest room in the building too.
+          </p>
+        </div>
 
-        <span className="mx-auto block h-1 w-10 rounded-full bg-blue-500" />
+        {/* =================================================================
+            BENTO GRID — ROW 1
+        ================================================================= */}
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {/* --- Card A: Our approach (checklist mock) --- */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6">
+              <div className="pointer-events-none absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-sky-500/20 blur-3xl" />
+              <h3 className="relative text-base font-semibold text-white">
+                Our approach.{" "}
+                <span className="font-normal text-zinc-400">
+                  Plan carefully, ship every week.
+                </span>
+              </h3>
+              <div className="relative mt-6 space-y-2">
+                {APPROACH_STEPS.map((step) => (
+                  <div
+                    key={step.label}
+                    className="flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-2"
+                  >
+                    {step.done ? (
+                      <CheckSquare className="h-4 w-4 shrink-0 text-emerald-400" />
+                    ) : (
+                      <Square className="h-4 w-4 shrink-0 text-zinc-500" />
+                    )}
+                    <span className="truncate text-sm text-zinc-300">
+                      {step.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* --- Card B: Our roadmap (schedule mock) --- */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6">
+              <div className="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-fuchsia-500/10 blur-3xl" />
+              <h3 className="relative text-base font-semibold text-white">
+                Our roadmap.{" "}
+                <span className="font-normal text-zinc-400">
+                  Shared with the whole team, every quarter.
+                </span>
+              </h3>
+              <div className="relative mt-6 rounded-xl border border-white/10 bg-white/5 p-3">
+                <p className="text-sm font-medium text-white">
+                  Q3 roadmap review
+                </p>
+                <p className="mt-1 text-xs text-zinc-400">10:00 – 10:45am</p>
+                <div className="mt-3 flex items-center -space-x-2">
+                  <div className="h-6 w-6 rounded-full border-2 border-zinc-950 bg-gradient-to-br from-sky-500 to-blue-600" />
+                  <div className="h-6 w-6 rounded-full border-2 border-zinc-950 bg-gradient-to-br from-amber-500 to-orange-600" />
+                  <div className="h-6 w-6 rounded-full border-2 border-zinc-950 bg-gradient-to-br from-emerald-500 to-teal-600" />
+                  <span className="ml-3 text-xs text-zinc-500">+2</span>
+                </div>
+              </div>
+            </div>
+
+            {/* --- Card C: big stat circle --- */}
+            <div className="relative flex aspect-square flex-col items-center justify-center overflow-hidden rounded-full border border-white/10 bg-zinc-950 p-6">
+              <div
+                className="pointer-events-none absolute inset-0 opacity-25"
+                style={{
+                  background:
+                    "radial-gradient(circle at 50% 40%, rgba(255,255,255,0.5), transparent 60%)",
+                }}
+              />
+              <span className="font-display relative text-6xl font-bold leading-none text-white">
+                48
+              </span>
+              <span className="relative mt-2 text-sm text-zinc-400">
+                Teammates
+              </span>
+              <button className="absolute bottom-4 right-4 flex h-9 w-9 items-center justify-center rounded-full bg-white text-zinc-950 transition hover:bg-zinc-200">
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* --- Card D: Talk to us (chat mock) --- */}
+            <div className="relative flex flex-col overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6">
+              <h3 className="text-base font-semibold text-white">
+                Talk to us.{" "}
+                <span className="font-normal text-zinc-400">
+                  Ask us anything, anytime.
+                </span>
+              </h3>
+              <div className="mt-6 space-y-2">
+                <div className="ml-auto max-w-[80%] rounded-xl rounded-br-sm bg-sky-500 px-3 py-2 text-xs text-white">
+                  Are you hiring designers?
+                </div>
+                <div className="flex items-start gap-2">
+                  <div className="h-6 w-6 shrink-0 rounded-full bg-gradient-to-br from-fuchsia-500 to-purple-600" />
+                  <div className="max-w-[80%] rounded-xl rounded-bl-sm bg-white/10 px-3 py-2 text-xs text-zinc-200">
+                    Yes! Check our careers page 👋
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 flex items-center justify-between rounded-lg border border-white/10 bg-white/5 px-3 py-2 text-xs text-zinc-500">
+                Type a message...
+                <Send className="h-3.5 w-3.5" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* =================================================================
+            BENTO GRID — ROW 2
+        ================================================================= */}
+        <div className="mx-auto max-w-6xl px-6 pb-24">
+          <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {/* --- Card E: Our docs (notes mock) --- */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6">
+              <h3 className="text-base font-semibold text-white">
+                Our docs.{" "}
+                <span className="font-normal text-zinc-400">
+                  Everything is written down.
+                </span>
+              </h3>
+              <div className="mt-6 space-y-3">
+                {DOCS.map((doc) => (
+                  <div key={doc.title} className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/10 bg-white/5">
+                      <doc.icon className="h-4 w-4 text-zinc-300" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-white">
+                        {doc.title}
+                      </p>
+                      <p className="truncate text-xs text-zinc-500">
+                        {doc.subtitle}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* --- Card F: Always in sync (avatar cluster + mic) --- */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6 lg:col-span-2">
+              <h3 className="text-base font-semibold text-white">
+                Always in sync.{" "}
+                <span className="font-normal text-zinc-400">
+                  We meet daily, wherever we are.
+                </span>
+              </h3>
+
+              <div className="relative mt-8 flex h-32 items-center justify-center">
+                <div className="pointer-events-none absolute h-28 w-28 rounded-full bg-sky-500/25 blur-2xl" />
+
+                {/* scattered "blank" teammates around the center */}
+                <div className="absolute left-4 top-2 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 opacity-70">
+                  <User className="h-4 w-4 text-zinc-400" />
+                </div>
+                <div className="absolute right-6 top-0 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5">
+                  <User className="h-4 w-4 text-zinc-400" />
+                </div>
+                <div className="absolute bottom-2 left-10 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5">
+                  <User className="h-4 w-4 text-zinc-400" />
+                </div>
+                <div className="absolute bottom-0 right-8 flex h-9 w-9 items-center justify-center rounded-full border border-white/10 bg-white/5 opacity-70">
+                  <User className="h-4 w-4 text-zinc-400" />
+                </div>
+
+                {/* center mic bubble */}
+                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur">
+                  <Mic className="h-6 w-6 text-white" />
+                </div>
+              </div>
+            </div>
+
+            {/* --- Card G: Meet the teams (nested project cards) --- */}
+            <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6">
+              <div className="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-fuchsia-500/10 blur-3xl" />
+              <h3 className="relative text-base font-semibold text-white">
+                Meet the teams.{" "}
+                <span className="font-normal text-zinc-400">
+                  Small groups, clear owners.
+                </span>
+              </h3>
+
+              <div className="relative mt-8">
+                {/* card peeking out behind */}
+                <div className="absolute -right-2 -top-3 w-4/5 -rotate-3 rounded-xl border border-white/10 bg-zinc-900/70 p-3 opacity-70">
+                  <p className="truncate text-xs font-medium text-zinc-300">
+                    {TEAMS[1].name}
+                  </p>
+                </div>
+
+                {/* front card */}
+                <div className="relative w-4/5 rounded-xl border border-white/10 bg-zinc-900 p-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-medium text-white">
+                      {TEAMS[0].name}
+                    </p>
+                    <Star className="h-3.5 w-3.5 text-zinc-500" />
+                  </div>
+                  <div className="mt-1 flex items-center gap-1.5 text-xs text-zinc-500">
+                    <Users className="h-3.5 w-3.5" />
+                    {TEAMS[0].members}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-
-      {/* ---------- GRID — no shared panel, gaps stay blank ---------- */}
-      <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {team.map((member) => (
-          <TeamCard key={member.id} member={member} />
-        ))}
-      </div>
-    </section>
+    </div>
   );
 }

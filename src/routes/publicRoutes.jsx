@@ -7,6 +7,7 @@ import Contact from "../pages/Contact";
 import Testimonials from "../pages/Testimonials";
 import PrivacyPolicy from "../pages/PrivacyPolicy";
 import TermsAndConditions from "../pages/TermsAndConditions";
+import Projects from "../pages/Projects";
 
 const publicRoutes = createBrowserRouter([
   {
@@ -16,6 +17,10 @@ const publicRoutes = createBrowserRouter([
       {
         index: true,
         Component: Home,
+      },
+      {
+        path: "/projects",
+        Component: Projects,
       },
       {
         path: "/services",

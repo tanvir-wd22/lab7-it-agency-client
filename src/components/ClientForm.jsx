@@ -14,7 +14,9 @@ const ClientForm = () => {
               className="input"
               placeholder="Your Mobile / Whatsapp"
             />
-            <button className="btn btn-neutral mt-4">Book Free Consultation</button>
+            <button className="btn btn-neutral mt-4">
+              Book Free Consultation
+            </button>
           </fieldset>
         </div>
       </div>
