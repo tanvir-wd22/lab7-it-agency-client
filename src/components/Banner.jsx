@@ -141,7 +141,7 @@ const Banner = () => {
   const outerPositions = useMemo(() => buildRingPositions(4, 48, 0), []);
 
   return (
-    <section className="relative w-full overflow-hidden px-4 py-16 sm:py-20">
+    <section className="relative w-full overflow-hidden">
       <style>{`
         @property --gradient-angle {
           syntax: '<angle>';

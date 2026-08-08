@@ -3,24 +3,6 @@ import { NavLink } from "react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X, ArrowRight } from "lucide-react";
 
-/* ============================================================================
-   COLOR FIX — same idea as the Projects section
-   ----------------------------------------------------------------------------
-   The old version hard-coded `zinc-*` colors (zinc-950, zinc-800, zinc-50...).
-   Those are fixed Tailwind colors — they never change, no matter what DaisyUI
-   theme you apply. So switching to "abyss" (or any other theme) did nothing
-   here, and the header looked out of place next to components that DO use
-   DaisyUI colors.
-
-   Below, every color is a DaisyUI semantic token instead:
-     base-100 / base-200 / base-300  -> theme background shades
-     base-content                    -> theme's default text color
-     primary / primary-content       -> theme's brand color + text that
-                                         reads well on top of it
-   Because these tokens are shared by every DaisyUI theme, this header
-   re-colors itself automatically whenever `data-theme` changes.
-   ========================================================================= */
-
 const navLinks = [
   { name: "Home", path: "/" },
   { name: "Projects", path: "/projects" },
@@ -59,6 +41,8 @@ export default function Header() {
   }
 
   return (
+    // `relative` is required here so the hairline border below (which uses
+    // `absolute`) positions itself against THIS header, not the whole page.
     <motion.header
       // "When the user sees it first": the header is at the very top of the
       // page, so there's no scrolling involved — it just needs to animate
@@ -67,7 +51,7 @@ export default function Header() {
       initial={{ y: -24, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.5, ease: "easeOut" }}
-      className="sticky top-0 z-50 border-b border-base-300 bg-base-100/95 backdrop-blur"
+      className="sticky top-0 z-50 relative bg-base-100/95 backdrop-blur"
     >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 lg:px-8">
         {/* Logo — a small whileHover spin gives it a bit of personality
@@ -85,9 +69,7 @@ export default function Header() {
             <h1 className="text-sm font-semibold leading-none text-base-content">
               Lab7
             </h1>
-            <p className="mt-1 text-xs text-base-content/50">
-              IT Agency
-            </p>
+            <p className="mt-1 text-xs text-base-content/50">IT Agency</p>
           </div>
         </NavLink>
 
@@ -180,7 +162,9 @@ export default function Header() {
             <motion.nav
               variants={{
                 hidden: {},
-                show: { transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+                show: {
+                  transition: { staggerChildren: 0.06, delayChildren: 0.05 },
+                },
               }}
               initial="hidden"
               animate="show"
@@ -225,6 +209,15 @@ export default function Header() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Hairline gradient accent along the bottom edge — same technique as
+          the footer's top border, just flipped to `bottom-0` here. This
+          replaces the old solid `border-b border-base-300` with a softer,
+          fading line instead of a hard edge all the way across. */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-primary/40 to-transparent"
+      />
     </motion.header>
   );
 }

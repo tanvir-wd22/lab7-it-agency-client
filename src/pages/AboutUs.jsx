@@ -12,30 +12,6 @@ import {
 } from "lucide-react";
 import Heading from "../components/Heading";
 
-/* ============================================================================
-   COLOR FIX — same pattern as the rest of the site
-   ----------------------------------------------------------------------------
-   The old version hard-coded `zinc-*` and `white` everywhere. Those never
-   change, so switching your DaisyUI theme to "abyss" did nothing here.
-   Below, structural colors are all DaisyUI tokens instead:
-
-     base-100 / base-200 / base-300   -> background surfaces (page / card / border)
-     base-content                     -> your theme's default text/ink color
-     primary                          -> your theme's brand color
-     success                          -> your theme's semantic "done" green
-
-   One extra trick worth knowing: instead of `bg-white/5` for a translucent
-   panel (which only looks right on dark themes), this file uses
-   `bg-base-content/5`. `base-content` is already the correct "ink" color
-   for whichever theme is active, so a faint tint of it reads as a subtle
-   surface on light AND dark themes — no light/dark branching needed.
-
-   The colorful avatar gradients (indigo→violet, pink→rose, etc.) are left
-   untouched on purpose — they're per-person identity colors, like GitHub
-   avatar colors, not part of your brand palette, so they don't need to
-   move with the theme.
-   ========================================================================= */
-
 // -----------------------------------------------------------------------------
 // Company data
 // -----------------------------------------------------------------------------
@@ -181,8 +157,8 @@ export default function AboutUs() {
           className="mb-10"
         >
           <Heading
-            title="Real problems, real outcomes."
-            description="We don't showcase logos — we showcase results."
+            title="Less Hype. Proven Outcomes."
+            description="We don't rely on big-name logos to prove our worth—our software speaks for itself"
           />
         </motion.div>
 
@@ -315,9 +291,7 @@ export default function AboutUs() {
                   {teamLead.name}
                 </p>
 
-                <p className="text-xs text-base-content/50">
-                  {teamLead.role}
-                </p>
+                <p className="text-xs text-base-content/50">{teamLead.role}</p>
               </div>
             </div>
           </MotionCard>
@@ -349,9 +323,7 @@ export default function AboutUs() {
                   <p className="text-sm font-medium text-base-content">
                     {doc.title}
                   </p>
-                  <p className="text-xs text-base-content/50">
-                    {doc.subtitle}
-                  </p>
+                  <p className="text-xs text-base-content/50">{doc.subtitle}</p>
                 </div>
               ))}
             </div>

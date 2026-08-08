@@ -1,4 +1,5 @@
-import { motion } from "motion/react";
+import { useEffect } from "react";
+import { motion, useAnimationControls } from "motion/react";
 import {
   Sparkles,
   Zap,
@@ -97,6 +98,23 @@ const testimonials = [
   },
 ];
 
+// ---------------------------------------------------------------------
+// Shared hover animation (same idea as the Contact page cards):
+//  1. The OUTER motion.div gets `whileHover="hover"` — this switches
+//     every motion element inside it to the "hover" variant.
+//  2. The border-ring div just declares `variants={ringVariants}` and
+//     automatically follows along — no extra state needed.
+// ---------------------------------------------------------------------
+const cardVariants = {
+  rest: { y: 0 },
+  hover: { y: -6, transition: { type: "spring", stiffness: 300, damping: 22 } },
+};
+
+const ringVariants = {
+  rest: { opacity: 0 },
+  hover: { opacity: 1, transition: { duration: 0.25, ease: "easeOut" } },
+};
+
 const TestimonialCard = ({ item }) => {
   const Icon = item.icon;
   const avatarUrl = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
@@ -105,29 +123,41 @@ const TestimonialCard = ({ item }) => {
 
   return (
     <motion.div
-      whileHover={{ y: -6 }}
-      transition={{ type: "spring", stiffness: 300, damping: 22 }}
+      variants={cardVariants}
+      initial="rest"
+      whileHover="hover"
       className="w-[280px] shrink-0 px-3 sm:w-[300px]"
     >
-      {/* Colored panel: logo + speech bubble */}
-      <div
-        className={`relative rounded-2xl border border-base-300/50 p-5 pb-6 ${colorMap[item.color]}`}
-      >
-        <div className="flex items-center gap-2 text-base-content">
-          <Icon size={20} strokeWidth={2.25} />
-          <span className="text-base font-bold tracking-tight">
-            {item.company}
-          </span>
+      {/* Wrap the colored panel in a "relative" box so we can place
+          the glowing border ring exactly on top of it. */}
+      <div className="relative">
+        {/* Colored panel: logo + speech bubble */}
+        <div
+          className={`relative rounded-2xl border border-base-300/50 p-5 pb-6 ${colorMap[item.color]}`}
+        >
+          <div className="flex items-center gap-2 text-base-content">
+            <Icon size={20} strokeWidth={2.25} />
+            <span className="text-base font-bold tracking-tight">
+              {item.company}
+            </span>
+          </div>
+
+          <div className="relative mt-5 rounded-xl bg-neutral p-4 text-sm leading-6 text-neutral-content shadow-sm">
+            {item.quote}
+            {/* Speech-bubble tail */}
+            <span
+              aria-hidden="true"
+              className="absolute -bottom-2 left-6 h-4 w-4 rotate-45 rounded-[3px] bg-neutral"
+            />
+          </div>
         </div>
 
-        <div className="relative mt-5 rounded-xl bg-neutral p-4 text-sm leading-6 text-neutral-content shadow-sm">
-          {item.quote}
-          {/* Speech-bubble tail */}
-          <span
-            aria-hidden="true"
-            className="absolute -bottom-2 left-6 h-4 w-4 rotate-45 rounded-[3px] bg-neutral"
-          />
-        </div>
+        {/* Glowing border ring — invisible until hovered.
+            pointer-events-none so it never blocks clicks. */}
+        <motion.div
+          variants={ringVariants}
+          className="pointer-events-none absolute inset-0 rounded-2xl border-2 border-primary"
+        />
       </div>
 
       {/* Avatar row — sits below the colored panel, on the page background */}
@@ -151,27 +181,43 @@ const TestimonialCard = ({ item }) => {
 };
 
 const Testimonials = () => {
-  // Duplicated once so the CSS loop from 0% to -50% is seamless.
+  // Duplicated once so the loop from 0% to -50% looks seamless
+  // (when the first copy scrolls fully out of view, the second
+  // copy is sitting exactly where the first one started).
   const track = [...testimonials, ...testimonials];
+
+  // -----------------------------------------------------------------
+  // MARQUEE ANIMATION — done with Framer Motion instead of CSS
+  // @keyframes.
+  // -----------------------------------------------------------------
+  // `useAnimationControls` gives us an object we can manually tell to
+  // "start" or "stop" an animation, which is exactly what we need to
+  // pause the scroll on hover.
+  const controls = useAnimationControls();
+
+  // The actual scroll animation: slide from 0% to -50%, forever,
+  // at a constant speed (linear = no easing/acceleration).
+  const scrollAnimation = {
+    x: ["0%", "-50%"],
+    transition: { duration: 30, ease: "linear", repeat: Infinity },
+  };
+
+  // Start the animation once, when the component first appears.
+  useEffect(() => {
+    controls.start(scrollAnimation);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Mouse enters the track -> stop scrolling.
+  const pauseScroll = () => controls.stop();
+
+  // Mouse leaves the track -> start scrolling again from the beginning.
+  // (Simple approach for beginners: it restarts at 0% instead of
+  // resuming from the exact spot it paused at.)
+  const resumeScroll = () => controls.start(scrollAnimation);
 
   return (
     <section className="relative w-full overflow-hidden">
-      <style>{`
-        @keyframes marquee-scroll {
-          from { transform: translateX(0); }
-          to { transform: translateX(-50%); }
-        }
-        .marquee-track {
-          animation: marquee-scroll 38s linear infinite;
-        }
-        .marquee-track:hover {
-          animation-play-state: paused;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .marquee-track { animation: none; }
-        }
-      `}</style>
-
       {/* Heading */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -181,13 +227,14 @@ const Testimonials = () => {
         className="mx-auto mb-12 max-w-2xl px-4 text-center sm:text-left"
       >
         <Heading
-          title="Success Speaks For Itself"
+          title="Testimonials"
           description="Predictive analytics has really made our processes smoother and boosted our business results a ton!"
         />
       </motion.div>
 
-      {/* Marquee — edge-fade mask is the premium touch that keeps the
-          cutoff cards from looking abrupt at the container edges. */}
+      {/* Marquee — edge-fade mask keeps the cutoff cards from looking
+          abrupt at the container edges. This "mask" is just a static
+          gradient (not an animation), so it stays as a style prop. */}
       <motion.div
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
@@ -201,11 +248,19 @@ const Testimonials = () => {
             "linear-gradient(to right, transparent, black 6%, black 94%, transparent)",
         }}
       >
-        <div className="marquee-track flex w-max py-2">
+        {/* animate={controls} hands control of this element over to
+            the `controls` object above, so pauseScroll/resumeScroll
+            can start and stop it. */}
+        <motion.div
+          animate={controls}
+          onHoverStart={pauseScroll}
+          onHoverEnd={resumeScroll}
+          className="flex w-max py-2"
+        >
           {track.map((item, i) => (
             <TestimonialCard key={`${item.name}-${i}`} item={item} />
           ))}
-        </div>
+        </motion.div>
       </motion.div>
     </section>
   );

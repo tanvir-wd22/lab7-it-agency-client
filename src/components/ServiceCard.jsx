@@ -46,6 +46,9 @@ export default function ServiceCard({ item }) {
     ctaLabel = "Learn More",
   } = item;
 
+  // This ref is how we control the <dialog> element imperatively
+  // (dialogs aren't opened/closed via normal React state — the browser
+  // gives them their own .showModal() / .close() methods).
   const modalRef = useRef(null);
 
   return (
@@ -126,7 +129,7 @@ export default function ServiceCard({ item }) {
             </p>
           </motion.div>
 
-          {/* CTA — no boxShadow, just opacity/scale feedback */}
+          {/* CTA — opens the dialog */}
           <motion.button
             type="button"
             variants={itemVariants}
@@ -175,14 +178,26 @@ export default function ServiceCard({ item }) {
 
       {/* Modal */}
       <dialog ref={modalRef} className="modal modal-bottom sm:modal-middle">
-        <div className="modal-box border border-base-300 bg-base-100 text-base-content">
+        <div className="modal-box border border-base-300 bg-base-100 p-0 text-base-content">
           <form method="dialog">
-            <button className="btn btn-circle btn-sm btn-ghost absolute top-3 right-3">
+            <button className="btn btn-circle btn-sm btn-ghost absolute top-3 right-3 z-10">
               ✕
             </button>
           </form>
 
-          <ModalForm />
+          {/*
+            We pass two props down to ModalForm:
+            - serviceTitle: just so the form can show which service
+              the enquiry is about (nice touch, totally optional).
+            - onClose: a function ModalForm calls once the form has
+              been submitted successfully, so IT decides *when* to
+              close, but the dialog itself stays fully controlled by
+              this parent component.
+          */}
+          <ModalForm
+            serviceTitle={title}
+            onClose={() => modalRef.current?.close()}
+          />
         </div>
 
         <form method="dialog" className="modal-backdrop">

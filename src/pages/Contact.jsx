@@ -5,12 +5,13 @@ import {
   MessageCircle,
   Phone,
   MapPin,
-  ArrowRight,
   CheckCircle2,
   Loader2,
 } from "lucide-react";
 import Heading from "../components/Heading";
 
+// Simple list of contact info cards.
+// To edit info, just change the values below.
 const infoCards = [
   {
     icon: Mail,
@@ -41,53 +42,65 @@ const infoCards = [
   },
 ];
 
-// ---- Framer Motion variants -------------------------------------------
-
-const columnStagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+// ---------------------------------------------------------------------
+// Shared hover animation for every box on this page (info cards + form).
+// "rest" = normal state, "hover" = when the mouse is over the box.
+//
+// How it works:
+//  1. The OUTER motion.div gets `whileHover="hover"` — this tells Framer
+//     Motion "when hovered, switch to the hover variant".
+//  2. Any motion.div INSIDE it that also uses `variants={...}` will
+//     automatically follow along (this is called "variant propagation").
+//     That's how the border-ring fades in at the same time the card
+//     scales up, without any extra state or event handlers.
+// ---------------------------------------------------------------------
+const cardVariants = {
+  rest: { scale: 1 },
+  hover: { scale: 1.02, transition: { duration: 0.25, ease: "easeOut" } },
 };
 
-const cardEntrance = {
-  hidden: { opacity: 0, y: 20, scale: 0.98 },
-  show: {
-    opacity: 1,
-    y: 0,
-    scale: 1,
-    transition: { duration: 0.45, ease: "easeOut" },
-  },
+const ringVariants = {
+  rest: { opacity: 0 },
+  hover: { opacity: 1, transition: { duration: 0.25, ease: "easeOut" } },
 };
 
-const fieldStagger = {
-  hidden: {},
-  show: { transition: { staggerChildren: 0.06, delayChildren: 0.12 } },
-};
+// A small wrapper so we don't repeat the "card + glowing ring" markup
+// four/five times. Wrap any box in this to get the hover effect.
+// `h-full` is passed through so the wrapper never shrinks below the
+// height its parent (a flex/grid container) gives it — that's the key
+// piece that lets the cards + form match height.
+const HoverGlowBox = ({ className = "", children }) => (
+  <motion.div
+    variants={cardVariants}
+    initial="rest"
+    whileHover="hover"
+    className="relative h-full"
+  >
+    {/* The actual content box */}
+    <div className={className}>{children}</div>
 
-const fieldItem = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
-};
+    {/* The glowing border ring — starts invisible, fades in on hover.
+        pointer-events-none so it never blocks clicks on the content. */}
+    <motion.div
+      variants={ringVariants}
+      className="pointer-events-none absolute inset-0 rounded-xl border-2 border-primary"
+    />
+  </motion.div>
+);
 
-// -------------------------------------------------------------------------
-
+// A single info card.
+// `flex-1` here is what makes the 4 cards share the left column's
+// height EQUALLY, instead of each card just being as tall as its text.
 const InfoCard = ({ icon: Icon, title, subtitle, value, href }) => {
-  const content = (
+  const cardContent = (
     <div className="flex items-start gap-4">
-      <span
-        className="
-          flex h-10 w-10 shrink-0 items-center justify-center
-          rounded-lg border border-base-300 bg-base-100
-          text-base-content/70
-          transition-colors duration-200
-          group-hover:border-primary/40 group-hover:text-primary
-        "
-      >
-        <Icon size={17} />
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Icon size={18} />
       </span>
-      <div className="min-w-0">
-        <p className="text-sm font-semibold text-base-content">{title}</p>
-        <p className="mt-0.5 text-sm text-base-content/55">{subtitle}</p>
-        <p className="mt-1.5 text-sm font-semibold text-base-content">
+      <div>
+        <p className="font-semibold text-base-content">{title}</p>
+        <p className="text-sm text-base-content/60">{subtitle}</p>
+        <p className="mt-1 text-sm font-semibold text-base-content">
           {value}
         </p>
       </div>
@@ -95,137 +108,80 @@ const InfoCard = ({ icon: Icon, title, subtitle, value, href }) => {
   );
 
   return (
-    <motion.div
-      variants={cardEntrance}
-      whileHover={{ y: -3 }}
-      transition={{ type: "spring", stiffness: 280, damping: 22 }}
-      className="group relative flex-1"
-    >
-      <div
-        className="
-          relative flex h-full items-center overflow-hidden rounded-xl
-          border border-base-300 bg-base-200/40 p-5
-          transition-colors duration-300
-          group-hover:bg-base-200/70
-        "
-      >
-        {href ? (
-          <a href={href} className="w-full">
-            {content}
-          </a>
-        ) : (
-          content
-        )}
-      </div>
-      {/* gradient ring, exact 1px ring via mask, fades in on hover */}
-      <div
-        aria-hidden="true"
-        className="
-          premium-ring pointer-events-none absolute inset-0 rounded-xl p-px
-          opacity-0 transition-opacity duration-300
-          group-hover:opacity-100
-        "
-      />
-    </motion.div>
+    <div className="flex-1">
+      <HoverGlowBox className="flex h-full items-center rounded-xl border border-base-300 bg-base-100 p-5 shadow-sm">
+        {href ? <a href={href}>{cardContent}</a> : cardContent}
+      </HoverGlowBox>
+    </div>
   );
 };
 
 const Contact = () => {
-  const [form, setForm] = useState({
-    firstName: "",
-    lastName: "",
+  // -----------------------------------------------------------------
+  // FORM STATE — the React-recommended way to handle multiple inputs
+  // -----------------------------------------------------------------
+  // Instead of one useState per field, we keep ONE object that holds
+  // every field's value. Each input's `name` attribute must match a
+  // key in this object.
+  const [formData, setFormData] = useState({
+    name: "",
     email: "",
     mobile: "",
     message: "",
   });
-  const [agreed, setAgreed] = useState(false);
-  const [status, setStatus] = useState("idle"); // idle | sending | sent
 
-  const handleChange = (e) => {
+  const [isSending, setIsSending] = useState(false);
+  const [isSent, setIsSent] = useState(false);
+
+  // Runs on every keystroke in any input/textarea.
+  // e.target.name  -> which field triggered the change (e.g. "email")
+  // e.target.value -> the new value the user typed
+  //
+  // We use the "computed property name" syntax [e.target.name]: value
+  // so ONE function can update ANY field, instead of writing a
+  // separate handler for name, email, mobile, message, etc.
+  function handleChange(e) {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
+    setFormData((prevData) => ({
+      ...prevData, // keep all the other fields as they are
+      [name]: value, // overwrite just the one field that changed
+    }));
+  }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (status === "sending" || !agreed) return;
-    setStatus("sending");
-    // Replace with your real submit call.
-    setTimeout(() => {
-      setStatus("sent");
-      setForm({
-        firstName: "",
-        lastName: "",
-        email: "",
-        mobile: "",
-        message: "",
-      });
-      setAgreed(false);
-    }, 1400);
-  };
+  // Runs when the form is submitted.
+  async function handleSubmit(e) {
+    e.preventDefault(); // stop the browser from reloading the page
 
-  const inputClasses = `
-    w-full rounded-lg border border-base-300 bg-base-100
-    px-3.5 py-2.5 text-sm text-base-content
-    placeholder:text-base-content/35
-    transition-colors duration-200
-    focus:border-primary focus:outline-none
-    focus:ring-2 focus:ring-primary/20
-  `;
+    setIsSending(true);
+
+    try {
+      // 👉 Replace this fake delay with your real request, e.g.:
+      // await fetch("/api/contact", {
+      //   method: "POST",
+      //   headers: { "Content-Type": "application/json" },
+      //   body: JSON.stringify(formData),
+      // });
+      await new Promise((resolve) => setTimeout(resolve, 1200));
+
+      console.log("Form submitted:", formData);
+      setIsSent(true);
+      setFormData({ name: "", email: "", mobile: "", message: "" }); // reset form
+    } catch (error) {
+      console.error("Something went wrong sending the form:", error);
+    } finally {
+      setIsSending(false);
+    }
+  }
 
   return (
-    // No outer margin/padding — this fills whatever container wraps it
-    // (your max-w-7xl mx-auto w-11/12 my-8).
-    <div className="relative w-full">
-      {/* Animated gradient-ring hover border, shared across all cards.
-          Ring shape comes from mask-composite: exclude, so every edge —
-          left included — is guaranteed coverage regardless of card size. */}
-      <style>{`
-        @property --gradient-angle {
-          syntax: '<angle>';
-          initial-value: 0deg;
-          inherits: false;
-        }
-        @keyframes spin-gradient-angle {
-          to { --gradient-angle: 360deg; }
-        }
-        .premium-ring {
-          background: conic-gradient(
-            from var(--gradient-angle),
-            var(--color-primary),
-            var(--color-secondary),
-            var(--color-accent),
-            var(--color-primary)
-          );
-          animation: spin-gradient-angle 3.5s linear infinite;
-          -webkit-mask:
-            linear-gradient(#fff 0 0) content-box,
-            linear-gradient(#fff 0 0);
-          -webkit-mask-composite: xor;
-          mask-composite: exclude;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .premium-ring { animation: none; }
-        }
-      `}</style>
-
-      {/* Ambient background glow — subtle, contained within this component */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-10 right-1/4 -z-10 h-56 w-56 rounded-full bg-secondary/10 blur-3xl"
-      />
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -bottom-10 left-1/4 -z-10 h-56 w-56 rounded-full bg-primary/10 blur-3xl"
-      />
-
+    <div className="w-full">
       {/* Heading */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
+        viewport={{ once: true }}
         transition={{ duration: 0.5 }}
-        className="mx-auto mb-10 max-w-2xl space-y-3 text-center"
+        className="mx-auto mb-10 max-w-2xl text-center"
       >
         <Heading
           title="Contact Us"
@@ -233,302 +189,135 @@ const Contact = () => {
         />
       </motion.div>
 
-      {/* Two-column layout — items-stretch makes both columns share the
-          exact same height as the taller one, automatically. */}
+      {/* items-stretch makes both grid columns equal height (this is
+          actually the grid default, but writing it explicitly makes
+          the intent obvious to anyone reading the code later). */}
       <div className="grid grid-cols-1 items-stretch gap-6 lg:grid-cols-2">
-        {/* ---------------- Left: info cards ---------------- */}
-        <motion.div
-          variants={columnStagger}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.15 }}
-          className="flex h-full flex-col gap-4"
-        >
+        {/* Left column: info cards.
+            h-full + flex-col means this column stretches to match the
+            grid row's height, and its 4 children (each wrapped in
+            flex-1 above) share that height equally. On small screens
+            h-full has no effect since the grid row just wraps to
+            content — so mobile still looks like a normal stacked list. */}
+        <div className="flex h-full flex-col gap-4">
           {infoCards.map((card) => (
             <InfoCard key={card.title} {...card} />
           ))}
-        </motion.div>
+        </div>
 
-        {/* ---------------- Right: form ---------------- */}
-        <motion.div
-          variants={cardEntrance}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, amount: 0.15 }}
-          whileHover={{ y: -3 }}
-          transition={{ type: "spring", stiffness: 260, damping: 24 }}
-          className="group relative h-full"
-        >
-          <div
-            className="
-              relative flex h-full flex-col overflow-hidden rounded-xl
-              border border-base-300 bg-base-100 p-6
-              shadow-sm transition-shadow duration-300
-              group-hover:shadow-md
-            "
-          >
-            <AnimatePresence mode="wait">
-              {status === "sent" ? (
-                <motion.div
-                  key="success"
-                  initial={{ opacity: 0, scale: 0.96 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.96 }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                  className="flex flex-1 flex-col items-center justify-center gap-4 text-center"
+        {/* Right column: the form, wrapped in the same hover-glow box.
+            h-full here matches the left column's stretched height. */}
+        <HoverGlowBox className="flex h-full flex-col rounded-xl border border-base-300 bg-base-100 p-6 shadow-sm">
+          <AnimatePresence mode="wait">
+            {isSent ? (
+              // Success message shown after submitting.
+              // flex-1 + centered content so it fills the same space
+              // the form was using, instead of collapsing to a small box.
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.3 }}
+                className="flex flex-1 flex-col items-center justify-center gap-3 text-center"
+              >
+                <span className="flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success">
+                  <CheckCircle2 size={28} />
+                </span>
+                <h4 className="text-lg font-semibold text-base-content">
+                  Message sent
+                </h4>
+                <p className="text-sm text-base-content/60">
+                  Thanks for reaching out — we'll reply within 24 hours.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setIsSent(false)}
+                  className="btn btn-link btn-sm text-primary"
                 >
-                  <motion.span
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 260,
-                      damping: 16,
-                      delay: 0.1,
-                    }}
-                    className="flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success"
-                  >
-                    <CheckCircle2 size={28} />
-                  </motion.span>
-                  <div>
-                    <h4 className="text-lg font-semibold text-base-content">
-                      Message sent
-                    </h4>
-                    <p className="mt-1 text-sm text-base-content/60">
-                      Thanks for reaching out — we'll reply within 24 hours.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setStatus("idle")}
-                    className="mt-2 text-sm font-medium text-primary hover:underline"
-                  >
-                    Send another message
-                  </button>
-                </motion.div>
-              ) : (
-                <motion.form
-                  key="form"
-                  variants={fieldStagger}
-                  initial="hidden"
-                  whileInView="show"
-                  viewport={{ once: true, amount: 0.3 }}
-                  onSubmit={handleSubmit}
-                  className="flex h-full flex-col"
-                >
-                  <motion.div variants={fieldItem}>
-                    <h3 className="text-lg font-semibold text-base-content">
-                      Send us a message
-                    </h3>
-                    <p className="mt-1 text-sm text-base-content/55">
-                      Fill out the form below and we'll get back to you within
-                      24 hours.
-                    </p>
-                  </motion.div>
+                  Send another message
+                </button>
+              </motion.div>
+            ) : (
+              // The actual form.
+              // flex-1 + flex-col so the fieldset can grow and push the
+              // submit button toward the bottom, matching the left
+              // column's bottom edge.
+              <motion.form
+                key="form"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onSubmit={handleSubmit}
+                className="flex flex-1 flex-col"
+              >
+                <fieldset className="fieldset flex flex-1 flex-col">
+                  <label className="label">Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    className="input w-full"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
 
-                  <div className="mt-6 flex-1 space-y-5">
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                      <motion.div variants={fieldItem} className="space-y-1.5">
-                        <label
-                          htmlFor="firstName"
-                          className="text-sm font-medium text-base-content"
-                        >
-                          First Name <span className="text-error">*</span>
-                        </label>
-                        <motion.input
-                          whileFocus={{ scale: 1.01 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 300,
-                            damping: 20,
-                          }}
-                          id="firstName"
-                          name="firstName"
-                          type="text"
-                          required
-                          value={form.firstName}
-                          onChange={handleChange}
-                          placeholder="John"
-                          className={inputClasses}
-                        />
-                      </motion.div>
+                  <label className="label">Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    className="input w-full"
+                    placeholder="john@mail.com"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
 
-                      <motion.div variants={fieldItem} className="space-y-1.5">
-                        <label
-                          htmlFor="lastName"
-                          className="text-sm font-medium text-base-content"
-                        >
-                          Last Name <span className="text-error">*</span>
-                        </label>
-                        <motion.input
-                          whileFocus={{ scale: 1.01 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 300,
-                            damping: 20,
-                          }}
-                          id="lastName"
-                          name="lastName"
-                          type="text"
-                          required
-                          value={form.lastName}
-                          onChange={handleChange}
-                          placeholder="Doe"
-                          className={inputClasses}
-                        />
-                      </motion.div>
-                    </div>
+                  <label className="label">Mobile / Whatsapp</label>
+                  <input
+                    type="text"
+                    name="mobile"
+                    className="input w-full"
+                    placeholder="Please enter number with country code"
+                    value={formData.mobile}
+                    onChange={handleChange}
+                  />
 
-                    <motion.div variants={fieldItem} className="space-y-1.5">
-                      <label
-                        htmlFor="email"
-                        className="text-sm font-medium text-base-content"
-                      >
-                        Email Address <span className="text-error">*</span>
-                      </label>
-                      <motion.input
-                        whileFocus={{ scale: 1.01 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 20,
-                        }}
-                        id="email"
-                        name="email"
-                        type="email"
-                        required
-                        value={form.email}
-                        onChange={handleChange}
-                        placeholder="john@mobile.com"
-                        className={inputClasses}
-                      />
-                    </motion.div>
-
-                    <motion.div variants={fieldItem} className="space-y-1.5">
-                      <label
-                        htmlFor="mobile"
-                        className="text-sm font-medium text-base-content"
-                      >
-                        Mobile Number
-                      </label>
-                      <motion.input
-                        whileFocus={{ scale: 1.01 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 20,
-                        }}
-                        id="mobile"
-                        name="mobile"
-                        type="text"
-                        value={form.mobile}
-                        onChange={handleChange}
-                        placeholder="Your Mobile Number"
-                        className={inputClasses}
-                      />
-                    </motion.div>
-
-                    <motion.div variants={fieldItem} className="space-y-1.5">
-                      <label
-                        htmlFor="message"
-                        className="text-sm font-medium text-base-content"
-                      >
-                        Message <span className="text-error">*</span>
-                      </label>
-                      <motion.textarea
-                        whileFocus={{ scale: 1.01 }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 300,
-                          damping: 20,
-                        }}
-                        id="message"
-                        name="message"
-                        rows={4}
-                        required
-                        value={form.message}
-                        onChange={handleChange}
-                        placeholder="Tell us about your project, goals, or how we can help..."
-                        className={`${inputClasses} resize-none`}
-                      />
-                    </motion.div>
-
-                    <motion.label
-                      variants={fieldItem}
-                      className="flex cursor-pointer items-start gap-2.5 text-sm text-base-content/70"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={agreed}
-                        onChange={(e) => setAgreed(e.target.checked)}
-                        required
-                        className="checkbox checkbox-sm mt-0.5 rounded border-base-300"
-                      />
-                      <span>
-                        I agree to the{" "}
-                        <a
-                          href="#"
-                          className="font-medium text-base-content hover:text-primary"
-                        >
-                          Terms of Service
-                        </a>{" "}
-                        and{" "}
-                        <a
-                          href="#"
-                          className="font-medium text-base-content hover:text-primary"
-                        >
-                          Privacy Policy
-                        </a>
-                      </span>
-                    </motion.label>
-                  </div>
+                  <label className="label">Message</label>
+                  {/* flex-1 on the textarea lets it stretch to fill any
+                      leftover space, so the button below still lands
+                      near the bottom instead of floating mid-box. */}
+                  <textarea
+                    name="message"
+                    className="textarea w-full flex-1"
+                    placeholder="Do you have any inquiries regarding our IT services?"
+                    value={formData.message}
+                    onChange={handleChange}
+                    required
+                  ></textarea>
 
                   <motion.button
-                    variants={fieldItem}
-                    whileHover={{ scale: 1.015 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
                     type="submit"
-                    disabled={status === "sending" || !agreed}
-                    className="
-                      mt-6 flex w-full items-center justify-center gap-2
-                      rounded-lg bg-base-content px-4 py-2.5
-                      text-sm font-semibold text-base-100
-                      transition-opacity duration-200
-                      hover:opacity-90
-                      disabled:cursor-not-allowed disabled:opacity-50
-                      focus-visible:outline-none focus-visible:ring-2
-                      focus-visible:ring-primary focus-visible:ring-offset-2
-                      focus-visible:ring-offset-base-100
-                    "
+                    disabled={isSending}
+                    className="btn btn-neutral mt-4"
                   >
-                    {status === "sending" ? (
+                    {isSending ? (
                       <>
                         <Loader2 size={16} className="animate-spin" />
                         Sending...
                       </>
                     ) : (
-                      <>
-                        Submit
-                        <ArrowRight size={16} />
-                      </>
+                      "Book Free Consultation"
                     )}
                   </motion.button>
-                </motion.form>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* gradient ring on the form card too */}
-          <div
-            aria-hidden="true"
-            className="
-              premium-ring pointer-events-none absolute inset-0 rounded-xl p-px
-              opacity-0 transition-opacity duration-300
-              group-hover:opacity-100
-            "
-          />
-        </motion.div>
+                </fieldset>
+              </motion.form>
+            )}
+          </AnimatePresence>
+        </HoverGlowBox>
       </div>
     </div>
   );

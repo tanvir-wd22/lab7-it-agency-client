@@ -31,7 +31,7 @@ const itemVariants = {
 
 const Services = () => {
   return (
-    <section className="w-full bg-base-100 px-4 sm:px-6 lg:px-8">
+    <section className="w-full bg-base-100">
       {/* Heading */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

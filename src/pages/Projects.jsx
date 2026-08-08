@@ -3,29 +3,6 @@ import { motion, useInView } from "framer-motion";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 import Heading from "../components/Heading";
 
-/* ============================================================================
-   WHY THERE ARE NO HEX CODES IN THIS FILE
-   ----------------------------------------------------------------------------
-   The old version hard-coded colors like `#0E1B22` and `#3274BF`. That looks
-   fine until you switch your DaisyUI theme (like you did, to "abyss") — the
-   hard-coded hex values don't know that happened, so they stay stuck on
-   whatever was typed in, and you get a clash.
-
-   DaisyUI solves this by giving every theme the SAME variable names
-   (--color-base-100, --color-primary, --color-base-content, etc.) but
-   DIFFERENT values per theme. As long as we only ever reference the
-   variable name — either via a Tailwind class like `bg-primary`, or via
-   `var(--color-primary)` in raw CSS/JS — the component automatically
-   re-colors itself for whichever theme is active. Switch to "abyss",
-   "dracula", "cupcake"... this file never needs to change again.
-
-   Cheat sheet of the DaisyUI tokens used below:
-     base-100 / base-200 / base-300   -> your theme's background shades
-     base-content                     -> your theme's default text color
-     primary / secondary / accent     -> your theme's brand colors
-     success                          -> your theme's "good news" green
-   ========================================================================= */
-
 /* ----------------------------------------------------------------------- */
 /*  A NOTE ON THE TWO KINDS OF ANIMATION IN THIS FILE (for beginners)      */
 /*  -----------------------------------------------------------------------*/
@@ -477,10 +454,12 @@ function ProjectCard({ project, index }) {
 export default function Projects() {
   return (
     <div>
-      <Heading
-        title="Real problems, real outcomes."
-        description="We don't showcase logos — we showcase results."
-      />
+      <div className="mb-8">
+        <Heading
+          title="Built for Results."
+          description="Explore how we turn technical challenges into scalable products that drive real revenue"
+        />
+      </div>
 
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
         {projects.map((project, i) => (
