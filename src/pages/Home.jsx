@@ -8,12 +8,12 @@ import Testimonials from "./Testimonials";
 
 const Home = () => {
   return (
-    <div className="">
-      <div className="mb-8 lg:mb-16">
-        <Banner></Banner>
-      </div>
+    <section>
       <div className="mb-8 lg:mb-16">
         <Carousel></Carousel>
+      </div>
+      <div className="mb-8 lg:mb-16">
+        <Banner></Banner>
       </div>
       <div className="mb-8 lg:mb-16">
         <AboutUs></AboutUs>
@@ -30,7 +30,7 @@ const Home = () => {
       <div className="mb-8 lg:mb-16">
         <Testimonials></Testimonials>
       </div>
-    </div>
+    </section>
   );
 };
 

@@ -1,34 +1,53 @@
 import { useState } from "react";
-import { motion, AnimatePresence } from "motion/react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { motion } from "motion/react";
+import { toast } from "react-toastify";
+import axiosInstance from "../api/api";
 
-// Small stagger animation so the fields fade/slide in one after another
-// instead of all appearing at once — this is what gives it that
-// "premium" feel.
-const fieldStagger = {
+// ===================================================================
+// ANIMATION SETTINGS
+// These control how the form fields "fade in" one after another.
+// You don't need to touch these unless you want to change the timing.
+// ===================================================================
+
+// This tells the form: "wait 0.1s, then reveal each child field
+// one by one, 0.06s apart" — that's what creates the staggered effect.
+const staggerContainer = {
   hidden: {},
-  visible: { transition: { staggerChildren: 0.06, delayChildren: 0.1 } },
+  visible: {
+    transition: {
+      staggerChildren: 0.06,
+      delayChildren: 0.1,
+    },
+  },
 };
 
-const fieldItem = {
+// This tells each individual field HOW to animate in:
+// start invisible and slightly lower (y: 10), end fully visible at y: 0.
+const fieldFadeIn = {
   hidden: { opacity: 0, y: 10 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.3, ease: "easeOut" } },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.3, ease: "easeOut" },
+  },
 };
 
-// Shared classes for every input/textarea, so they all look consistent
-// (clean border, soft focus ring — the shadcn-style look) without
-// repeating the same long string 4 times.
-const fieldClasses = `
+// Every text input/textarea shares this same styling, so instead of
+// typing the same long string 4 times, we save it once here.
+const inputStyles = `
   input w-full rounded-lg border-base-300
   bg-base-100 text-sm
   focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20
 `;
 
+// ===================================================================
+// THE COMPONENT
+// ===================================================================
+
 const ModalForm = ({ serviceTitle, onClose }) => {
-  // -----------------------------------------------------------------
-  // FORM STATE — one object holding every field, same pattern as the
-  // Contact page. Each input's `name` attribute must match a key here.
-  // -----------------------------------------------------------------
+  // ---- 1. STATE ----------------------------------------------------
+  // We keep every field's text in one object. This is the same
+  // approach the Contact page uses — one state object, one updater.
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -36,173 +55,144 @@ const ModalForm = ({ serviceTitle, onClose }) => {
     message: "",
   });
 
-  const [isSending, setIsSending] = useState(false);
-  const [isSent, setIsSent] = useState(false);
+  // ---- 2. HANDLE TYPING ---------------------------------------------
+  // This one function runs every time ANY input changes.
+  // It looks at which input fired the event (e.target.name) and
+  // updates just that field in formData, leaving the rest untouched.
+  function handleChange(event) {
+    const fieldName = event.target.name; // e.g. "name", "email", ...
+    const newValue = event.target.value; // whatever the user typed
 
-  // Runs on every keystroke. e.target.name tells us which field
-  // changed, e.target.value is the new text. The computed key
-  // [name]: value lets one function handle every field.
-  function handleChange(e) {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setFormData((previousFormData) => {
+      return {
+        ...previousFormData, // keep all the other fields as they were
+        [fieldName]: newValue, // overwrite just the one that changed
+      };
+    });
   }
 
-  async function handleSubmit(e) {
-    e.preventDefault(); // stop the page from reloading
+  // ---- 3. HANDLE SUBMIT ----------------------------------------------
+  // Runs when the form is submitted (button click or pressing Enter).
+  async function handleSubmit(event) {
+    event.preventDefault(); // stops the page from doing a full reload
 
-    setIsSending(true);
+    console.log("Current Form Data Object:", formData);
 
     try {
-      // 👉 Replace this fake delay with your real request, e.g.:
-      // await fetch("/api/consultation", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify({ service: serviceTitle, ...formData }),
-      // });
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      // Send the form data to your backend. Change the URL below to
+      // whatever endpoint actually handles consultation requests.
+      await axiosInstance.post("/services", {
+        service: serviceTitle,
+        ...formData,
+      });
 
-      console.log("Consultation request:", { service: serviceTitle, ...formData });
-      setIsSent(true);
+      // Let the user know it worked, clear the form, and close the modal
+      toast.success("Request submitted successfully!");
       setFormData({ name: "", email: "", mobile: "", message: "" });
 
-      // Auto-close the modal a moment after showing the success state,
-      // so the user gets to see the confirmation first.
-      setTimeout(() => {
-        onClose?.();
-      }, 1500);
+      if (onClose) {
+        onClose();
+      }
     } catch (error) {
+      // Let the user know it failed instead of failing silently
+      toast.error("Something went wrong. Please try again.");
       console.error("Something went wrong sending the form:", error);
-    } finally {
-      setIsSending(false);
     }
   }
 
+  // ---- 4. WHAT TO SHOW -------------------------------------------------
   return (
     <div className="p-6 sm:p-8">
-      <AnimatePresence mode="wait">
-        {isSent ? (
-          // ---------------- Success state ----------------
-          <motion.div
-            key="success"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="flex flex-col items-center justify-center gap-3 py-10 text-center"
-          >
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success">
-              <CheckCircle2 size={28} />
-            </span>
-            <h4 className="text-lg font-semibold text-base-content">
-              Request sent
-            </h4>
-            <p className="text-sm text-base-content/60">
-              Thanks for reaching out — we'll be in touch shortly.
+      <motion.form
+        variants={staggerContainer}
+        initial="hidden"
+        animate="visible"
+        onSubmit={handleSubmit}
+        className="space-y-4"
+      >
+        {/* Title */}
+        <motion.div variants={fieldFadeIn} className="mb-2 space-y-1">
+          {serviceTitle && (
+            <p className="text-lg text-base-content/60 text-center">
+              Service : <span className="font-medium">{serviceTitle}</span>
             </p>
-          </motion.div>
-        ) : (
-          // ---------------- The form ----------------
-          <motion.form
-            key="form"
-            variants={fieldStagger}
-            initial="hidden"
-            animate="visible"
-            onSubmit={handleSubmit}
-            className="space-y-4"
-          >
-            <motion.div variants={fieldItem} className="mb-2 space-y-1">
-              <h3 className="text-lg font-semibold text-base-content">
-                Book Free Consultation
-              </h3>
-              {serviceTitle && (
-                <p className="text-sm text-base-content/60">
-                  Regarding: <span className="font-medium">{serviceTitle}</span>
-                </p>
-              )}
-            </motion.div>
+          )}
+        </motion.div>
 
-            <motion.div variants={fieldItem}>
-              <label className="label text-sm font-medium text-base-content">
-                Name
-              </label>
-              <input
-                type="text"
-                name="name"
-                className={fieldClasses}
-                placeholder="John Doe"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </motion.div>
+        {/* Name field */}
+        <motion.div variants={fieldFadeIn}>
+          <label className="label text-sm font-medium text-base-content">
+            Name
+          </label>
+          <input
+            type="text"
+            name="name"
+            className={inputStyles}
+            placeholder="John Doe"
+            value={formData.name}
+            onChange={handleChange}
+            required
+          />
+        </motion.div>
 
-            <motion.div variants={fieldItem}>
-              <label className="label text-sm font-medium text-base-content">
-                Email
-              </label>
-              <input
-                type="email"
-                name="email"
-                className={fieldClasses}
-                placeholder="john@mail.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </motion.div>
+        {/* Email field */}
+        <motion.div variants={fieldFadeIn}>
+          <label className="label text-sm font-medium text-base-content">
+            Email
+          </label>
+          <input
+            type="email"
+            name="email"
+            className={inputStyles}
+            placeholder="john@mail.com"
+            value={formData.email}
+            onChange={handleChange}
+            required
+          />
+        </motion.div>
 
-            <motion.div variants={fieldItem}>
-              <label className="label text-sm font-medium text-base-content">
-                Mobile / Whatsapp
-              </label>
-              <input
-                type="text"
-                name="mobile"
-                className={fieldClasses}
-                placeholder="Please enter number with country code"
-                value={formData.mobile}
-                onChange={handleChange}
-              />
-            </motion.div>
+        {/* Mobile field (optional) */}
+        <motion.div variants={fieldFadeIn}>
+          <label className="label text-sm font-medium text-base-content">
+            Mobile / Whatsapp
+          </label>
+          <input
+            type="text"
+            name="mobile"
+            className={inputStyles}
+            placeholder="Please enter number with country code"
+            value={formData.mobile}
+            onChange={handleChange}
+          />
+        </motion.div>
 
-            <motion.div variants={fieldItem}>
-              <label className="label text-sm font-medium text-base-content">
-                Message
-              </label>
-              <textarea
-                name="message"
-                className={`${fieldClasses} textarea h-24 resize-none`}
-                placeholder="Do you have any inquiries regarding our IT services?"
-                value={formData.message}
-                onChange={handleChange}
-                required
-              ></textarea>
-            </motion.div>
+        {/* Message field */}
+        <motion.div variants={fieldFadeIn}>
+          <label className="label text-sm font-medium text-base-content">
+            Message
+          </label>
+          <textarea
+            name="message"
+            className={`${inputStyles} textarea h-24 resize-none`}
+            placeholder="Do you have any inquiries regarding our IT services?"
+            value={formData.message}
+            onChange={handleChange}
+            required
+          ></textarea>
+        </motion.div>
 
-            <motion.button
-              variants={fieldItem}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 400, damping: 20 }}
-              type="submit"
-              disabled={isSending}
-              className="btn btn-neutral mt-2 w-full rounded-lg disabled:opacity-60"
-            >
-              {isSending ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  Sending...
-                </>
-              ) : (
-                "Book Free Consultation"
-              )}
-            </motion.button>
-          </motion.form>
-        )}
-      </AnimatePresence>
+        {/* Submit button */}
+        <motion.button
+          variants={fieldFadeIn}
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.98 }}
+          transition={{ type: "spring", stiffness: 400, damping: 20 }}
+          type="submit"
+          className="btn btn-neutral mt-2 w-full rounded-lg"
+        >
+          Book Free Consultation
+        </motion.button>
+      </motion.form>
     </div>
   );
 };
