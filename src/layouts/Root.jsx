@@ -1,17 +1,17 @@
-import { Outlet } from 'react-router';
-import Footer from '../components/Footer';
-import Header from '../components/Header';
+import { Outlet } from "react-router";
+import Footer from "../components/Footer";
+import Header from "../components/Header";
 
 const Root = () => {
   return (
     <section>
-      <div className="">
+      <div>
         <Header></Header>
       </div>
-      <div className="w-11/12 mx-auto my-8 lg:my-16 2xl:my-24">
+      <div className="max-w-7xl w-11/12 mx-auto my-8 sm:my-12 lg:my-16">
         <Outlet></Outlet>
       </div>
-      <div className="">
+      <div>
         <Footer></Footer>
       </div>
     </section>
