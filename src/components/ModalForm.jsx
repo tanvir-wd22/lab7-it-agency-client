@@ -45,7 +45,6 @@ const inputStyles = `
 // ===================================================================
 
 const ModalForm = ({ serviceTitle, onClose }) => {
-  console.log(import.meta.env.VITE_API_URL);
   // ---- 1. STATE ----------------------------------------------------
   // We keep every field's text in one object. This is the same
   // approach the Contact page uses — one state object, one updater.
@@ -100,7 +99,8 @@ const ModalForm = ({ serviceTitle, onClose }) => {
       console.error("Something went wrong sending the form:", error);
     }
   }
-
+  console.log(import.meta.env.VITE_API_URL);
+  console.log("modal form", formData);
   // ---- 4. WHAT TO SHOW -------------------------------------------------
   return (
     <div className="p-6 sm:p-8">

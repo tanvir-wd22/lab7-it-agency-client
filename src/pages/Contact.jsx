@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   Loader2,
 } from "lucide-react";
+import { toast } from "react-toastify";
+import axiosInstance from "../api/api";
 import Heading from "../components/Heading";
 
 // Simple list of contact info cards.
@@ -100,9 +102,7 @@ const InfoCard = ({ icon: Icon, title, subtitle, value, href }) => {
       <div>
         <p className="font-semibold text-base-content">{title}</p>
         <p className="text-sm text-base-content/60">{subtitle}</p>
-        <p className="mt-1 text-sm font-semibold text-base-content">
-          {value}
-        </p>
+        <p className="mt-1 text-sm font-semibold text-base-content">{value}</p>
       </div>
     </div>
   );
@@ -129,6 +129,7 @@ const Contact = () => {
     mobile: "",
     message: "",
   });
+  console.log("contact form", formData);
 
   const [isSending, setIsSending] = useState(false);
   const [isSent, setIsSent] = useState(false);
@@ -155,18 +156,13 @@ const Contact = () => {
     setIsSending(true);
 
     try {
-      // 👉 Replace this fake delay with your real request, e.g.:
-      // await fetch("/api/contact", {
-      //   method: "POST",
-      //   headers: { "Content-Type": "application/json" },
-      //   body: JSON.stringify(formData),
-      // });
-      await new Promise((resolve) => setTimeout(resolve, 1200));
+      await axiosInstance.post("/contacts", formData);
 
-      console.log("Form submitted:", formData);
+      toast.success("Message sent successfully!");
       setIsSent(true);
       setFormData({ name: "", email: "", mobile: "", message: "" }); // reset form
     } catch (error) {
+      toast.error("Something went wrong. Please try again.");
       console.error("Something went wrong sending the form:", error);
     } finally {
       setIsSending(false);
