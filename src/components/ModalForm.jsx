@@ -45,6 +45,7 @@ const inputStyles = `
 // ===================================================================
 
 const ModalForm = ({ serviceTitle, onClose }) => {
+  console.log(import.meta.env.VITE_API_URL);
   // ---- 1. STATE ----------------------------------------------------
   // We keep every field's text in one object. This is the same
   // approach the Contact page uses — one state object, one updater.
@@ -118,7 +119,6 @@ const ModalForm = ({ serviceTitle, onClose }) => {
             </p>
           )}
         </motion.div>
-
         {/* Name field */}
         <motion.div variants={fieldFadeIn}>
           <label className="label text-sm font-medium text-base-content">
@@ -134,7 +134,6 @@ const ModalForm = ({ serviceTitle, onClose }) => {
             required
           />
         </motion.div>
-
         {/* Email field */}
         <motion.div variants={fieldFadeIn}>
           <label className="label text-sm font-medium text-base-content">
@@ -150,7 +149,6 @@ const ModalForm = ({ serviceTitle, onClose }) => {
             required
           />
         </motion.div>
-
         {/* Mobile field (optional) */}
         <motion.div variants={fieldFadeIn}>
           <label className="label text-sm font-medium text-base-content">
@@ -165,7 +163,6 @@ const ModalForm = ({ serviceTitle, onClose }) => {
             onChange={handleChange}
           />
         </motion.div>
-
         {/* Message field */}
         <motion.div variants={fieldFadeIn}>
           <label className="label text-sm font-medium text-base-content">

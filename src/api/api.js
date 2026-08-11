@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const axiosInstance = axios.create({
-  baseURL: "https://lab7-it-agency-server.onrender.com",
-  //   baseURL: "http://localhost:5173",
+  baseURL: import.meta.env.VITE_API_URL,
+  withCredentials: true,
 });
 
 export default axiosInstance;
