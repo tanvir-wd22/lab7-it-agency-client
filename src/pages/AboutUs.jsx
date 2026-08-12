@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import {
   CheckSquare,
@@ -12,10 +13,24 @@ import {
 } from "lucide-react";
 import Heading from "../components/Heading";
 
+// =============================================================================
+// ABOUT US SECTION
 // -----------------------------------------------------------------------------
-// Company data
+// This file is split into 3 clear parts, top to bottom:
+//   1. DATA        -> plain JS objects/arrays that feed the UI (easy to edit)
+//   2. ANIMATION   -> Framer Motion variants (how things move on screen)
+//   3. UI PIECES   -> reusable card component + the main AboutUs component
+//
+// If you're new to this codebase: you almost never need to touch parts 2/3.
+// Most day-to-day changes (new team member, new stat, new quote) only
+// require editing the DATA section below.
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 1. DATA
 // -----------------------------------------------------------------------------
 
+// Small stats shown in the "At a glance" card.
 const companyStats = [
   { icon: Calendar, label: "Founded", value: "2021" },
   { icon: MapPin, label: "HQ", value: "Remote-first" },
@@ -23,12 +38,15 @@ const companyStats = [
   { icon: Star, label: "Client rating", value: "4.9/5" },
 ];
 
+// Steps shown in the "Our approach" checklist card.
+// `done: true` renders a checked box, `done: false` renders an empty one.
 const workflow = [
   { label: "Discovery workshop", done: true },
   { label: "UI/UX strategy", done: true },
   { label: "Development sprint", done: false },
 ];
 
+// The founder / lead — shown with a quote in its own card.
 const teamLead = {
   initials: "AR",
   name: "Atiqur Rahman",
@@ -38,6 +56,7 @@ const teamLead = {
   gradient: "from-indigo-500 to-violet-500",
 };
 
+// Rest of the team — shown in the "The team" list card.
 const team = [
   {
     initials: "SA",
@@ -59,6 +78,7 @@ const team = [
   },
 ];
 
+// Documentation links shown in the "Our documentation" card.
 const docs = [
   {
     title: "Development handbook",
@@ -74,6 +94,7 @@ const docs = [
   },
 ];
 
+// Little floating avatar bubbles in the "Always in sync" card.
 const cluster = [
   { initials: "UI", gradient: "from-teal-500 to-emerald-500" },
   { initials: "FE", gradient: "from-amber-500 to-orange-500" },
@@ -82,8 +103,19 @@ const cluster = [
 ];
 
 // -----------------------------------------------------------------------------
-// Framer Motion
+// 2. ANIMATION (Framer Motion + the traveling border spotlight)
 // -----------------------------------------------------------------------------
+
+// There are 7 cards total in this section (4 in the first grid, 3 in the
+// second). The spotlight moves through them in this exact order: 0, 1, 2,
+// 3, 4, 5, 6, then back to 0 — forever.
+const CARD_COUNT = 7;
+
+// How long the glowing comet takes to complete ONE full lap around a
+// card's border, in seconds. This single number controls BOTH how long
+// the CSS animation runs AND how long the JS timer waits before moving
+// the spotlight to the next card — keeping them in sync.
+const LAP_SECONDS = 3.5;
 
 // Parent variant: staggers its children in one after another instead of
 // everything appearing at once — this is what makes a grid of cards feel
@@ -97,8 +129,8 @@ const containerVariants = {
   },
 };
 
-// A small scale-in on top of the fade + rise gives cards a touch more
-// weight as they land — a common "premium" detail (vs. a flat fade).
+// Each card fades in, rises up slightly, and grows to full size.
+// This runs on every card because every card uses `cardVariants` below.
 const cardVariants = {
   hidden: {
     opacity: 0,
@@ -116,7 +148,128 @@ const cardVariants = {
   },
 };
 
-function MotionCard({ children, className = "" }) {
+// -----------------------------------------------------------------------------
+// 3. UI PIECES
+// -----------------------------------------------------------------------------
+
+/**
+ * ShimmerBorder
+ * -------------
+ * Draws TWO rounded rectangles on top of a card, using SVG:
+ *
+ *   1. A dim, always-visible outline — this is the normal "resting" border,
+ *      shown on every card, always.
+ *   2. A short, bright, glowing "comet" segment — but ONLY while this
+ *      specific card has been told it's `active`. When a card is not
+ *      active, the comet simply isn't rendered, so it sits there quiet
+ *      and dim like all the others.
+ *
+ * The comet is drawn with a transparent -> white -> transparent gradient
+ * and animates its `stroke-dashoffset` exactly ONCE (not on a loop) —
+ * one full lap around the border — which is what lets the parent
+ * component hand the spotlight to the next card right as this one
+ * finishes.
+ *
+ * `pathLength={100}` tells the browser "treat this rectangle's outline as
+ * exactly 100 units long", no matter the card's real pixel size — so the
+ * same dash numbers below work identically on every card shape.
+ *
+ * @param {number}  radius        - corner roundness in px (24 = rounded-3xl,
+ *                                  a big number like 999 gives a full circle).
+ * @param {boolean} active        - true while this card currently holds
+ *                                  the spotlight.
+ * @param {number}  activationKey - changes every time this card becomes
+ *                                  active again; forces React to mount a
+ *                                  brand-new <rect>, which restarts the
+ *                                  CSS animation from the very start.
+ * @param {string}  gradientId    - unique id for this card's <linearGradient>,
+ *                                  since SVG ids must be unique on the page.
+ */
+function ShimmerBorder({ radius = 24, active = false, activationKey, gradientId }) {
+  return (
+    <svg
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 h-full w-full"
+    >
+      <defs>
+        {/* transparent -> bright white -> transparent = the "comet" look */}
+        <linearGradient id={gradientId} x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="var(--color-primary)" stopOpacity="0" />
+          <stop offset="50%" stopColor="#ffffff" stopOpacity="1" />
+          <stop offset="100%" stopColor="var(--color-primary)" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+
+      {/* 1. dim base outline — visible on every card, all the time */}
+      <rect
+        x="1"
+        y="1"
+        width="calc(100% - 2px)"
+        height="calc(100% - 2px)"
+        rx={radius}
+        pathLength={100}
+        className="fill-none stroke-base-content/20"
+        strokeWidth="2"
+      />
+
+      {/* 2. bright comet — only exists while this card is active, and
+             remounts (via `key`) every time it becomes active again so
+             the animation always restarts from the beginning */}
+      {active && (
+        <rect
+          key={activationKey}
+          x="1"
+          y="1"
+          width="calc(100% - 2px)"
+          height="calc(100% - 2px)"
+          rx={radius}
+          pathLength={100}
+          stroke={`url(#${gradientId})`}
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeDasharray="22 78"
+          className="fill-none shimmer-comet"
+          style={{ animationDuration: `${LAP_SECONDS}s` }}
+        />
+      )}
+    </svg>
+  );
+}
+
+/**
+ * MotionCard
+ * -----------
+ * A single reusable "card" wrapper used by every box in this section
+ * (stats, workflow, team count, quote, docs, sync, team).
+ *
+ * Putting the shared look (border, background, rounded corners, hover
+ * animation) in ONE component means:
+ *   - every card automatically stays visually consistent
+ *   - if you want to change the look of ALL cards, you only edit it here
+ *
+ * SPOTLIGHT BORDER:
+ * Every card renders a `ShimmerBorder`, but only the card whose `index`
+ * matches the section's current `activeIndex` actually shows the moving
+ * comet — see `AboutUs` below for where that state lives.
+ *
+ * @param {number} index - this card's position in the spotlight order
+ *   (0, 1, 2, ...). Must be unique per card and match the order you want
+ *   the spotlight to travel in.
+ * @param {number} activeIndex - which card index currently has the
+ *   spotlight, passed down from `AboutUs`.
+ * @param {number} radius - passed straight through to ShimmerBorder so the
+ *   glowing outline matches this card's actual corner shape (the circular
+ *   "team count" card passes a big radius to get a full circle).
+ */
+function MotionCard({
+  children,
+  className = "",
+  radius = 24,
+  index,
+  activeIndex,
+}) {
+  const isActive = index === activeIndex;
+
   return (
     <motion.div
       variants={cardVariants}
@@ -125,30 +278,93 @@ function MotionCard({ children, className = "" }) {
         scale: 1.01,
         transition: { duration: 0.2 },
       }}
-      className={`group relative overflow-hidden rounded-3xl border border-base-300 bg-base-200 shadow-sm transition-[border-color,box-shadow] duration-300 hover:border-primary/30 hover:shadow-2xl hover:shadow-primary/10 ${className}`}
+      className={`
+        group relative overflow-hidden rounded-3xl
+        bg-base-200
+        shadow-sm
+        transition-shadow duration-300
+        hover:shadow-2xl hover:shadow-primary/10
+        ${className}
+      `}
     >
-      {/* Shadcn-style hairline: a faint light line along the very top edge
-          of the card. Barely visible, but it's what makes a flat card feel
-          like it has a physical top edge catching light. */}
+      {/* Hairline: a faint light line along the very top edge of the card.
+          Barely visible, but it's what makes a flat card feel like it has
+          a physical top edge catching light. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-base-content/15 to-transparent"
       />
+
+      {/* The glowing border — only "lit up" while this card is active.
+          `pointer-events-none` so it never blocks clicks/hovers. */}
+      <ShimmerBorder
+        radius={radius}
+        active={isActive}
+        activationKey={activeIndex}
+        gradientId={`shimmer-gradient-${index}`}
+      />
+
       {children}
     </motion.div>
   );
 }
 
-// -----------------------------------------------------------------------------
-// Component
-// -----------------------------------------------------------------------------
-
+/**
+ * AboutUs
+ * -------
+ * The main exported section. Two card grids:
+ *   Grid 1: company stats, workflow, team count, founder quote
+ *   Grid 2: docs, sync illustration, team list
+ */
 export default function AboutUs() {
+  // -----------------------------------------------------------------------
+  // The spotlight: one shared "which card index is glowing right now"
+  // value, owned right here and passed down to every card. A `setInterval`
+  // moves it forward by 1 every `LAP_SECONDS`, and `% CARD_COUNT` wraps it
+  // back to 0 once it passes the last card — so the sequence is always
+  // 0 -> 1 -> 2 -> ... -> 6 -> 0 -> 1 -> ... forever.
+  // -----------------------------------------------------------------------
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setActiveIndex((current) => (current + 1) % CARD_COUNT);
+    }, LAP_SECONDS * 1000);
+
+    // Always clean up timers in useEffect, or they'd keep running (and
+    // pile up) even after this component is removed from the page.
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <section className="w-full">
-      <div className="font-body">
-        {/* Header */}
+      {/*
+        This <style> tag defines the ONE animation every card's comet uses.
+        It says: "slide the dash pattern along the path one time, then
+        stay at the end." Because the comet <rect> is only ever mounted
+        while its card is active (see ShimmerBorder), "runs once" is
+        exactly what we want — the JS timer above is what decides when to
+        unmount it here and mount a fresh one on the next card.
+      */}
+      <style>{`
+        @keyframes shimmer-travel {
+          to {
+            stroke-dashoffset: -100;
+          }
+        }
+        .shimmer-comet {
+          animation-name: shimmer-travel;
+          animation-timing-function: linear;
+          animation-iteration-count: 1;
+          animation-fill-mode: forwards;
+          filter:
+            drop-shadow(0 0 4px var(--color-primary))
+            drop-shadow(0 0 10px rgba(255, 255, 255, 0.55));
+        }
+      `}</style>
 
+      <div className="font-body">
+        {/* ----------------------------- Header ----------------------------- */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -162,8 +378,7 @@ export default function AboutUs() {
           />
         </motion.div>
 
-        {/* First grid */}
-
+        {/* --------------------------- First grid --------------------------- */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -171,9 +386,8 @@ export default function AboutUs() {
           viewport={{ once: true, amount: 0.2 }}
           className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
         >
-          {/* Company stats */}
-
-          <MotionCard className="p-6">
+          {/* --- Card: company stats --- */}
+          <MotionCard index={0} activeIndex={activeIndex} className="p-6">
             <h3 className="text-base font-semibold text-base-content">
               At a glance.
               <span className="font-normal text-base-content/60">
@@ -201,9 +415,8 @@ export default function AboutUs() {
             </div>
           </MotionCard>
 
-          {/* Workflow */}
-
-          <MotionCard className="p-6">
+          {/* --- Card: workflow / approach --- */}
+          <MotionCard index={1} activeIndex={activeIndex} className="p-6">
             <h3 className="text-base font-semibold text-base-content">
               Our approach.
               <span className="font-normal text-base-content/60">
@@ -233,11 +446,17 @@ export default function AboutUs() {
             </div>
           </MotionCard>
 
-          {/* Team count */}
-
-          <MotionCard className="flex aspect-square flex-col items-center justify-center rounded-full p-6">
-            {/* A soft glow tied to your theme's primary color instead of a
-                flat white glare — reads as a deliberate accent on any theme. */}
+          {/* --- Card: team count (circular) --- */}
+          {/* radius={999} makes the shimmer border trace a full circle
+              instead of rounded-rectangle corners, matching rounded-full */}
+          <MotionCard
+            index={2}
+            activeIndex={activeIndex}
+            radius={999}
+            className="flex aspect-square flex-col items-center justify-center rounded-full p-6"
+          >
+            {/* Soft glow tied to the theme's primary color instead of a flat
+                white glare — reads as intentional on any color theme. */}
             <div
               aria-hidden="true"
               className="absolute inset-0 opacity-40 transition-opacity duration-300 group-hover:opacity-70"
@@ -267,9 +486,8 @@ export default function AboutUs() {
             </motion.button>
           </MotionCard>
 
-          {/* Founder quote */}
-
-          <MotionCard className="p-6">
+          {/* --- Card: founder quote --- */}
+          <MotionCard index={3} activeIndex={activeIndex} className="p-6">
             <Quote className="h-5 w-5 text-base-content/30" />
 
             <p className="mt-4 text-sm leading-relaxed text-base-content/80">
@@ -290,15 +508,13 @@ export default function AboutUs() {
                 <p className="text-sm font-medium text-base-content">
                   {teamLead.name}
                 </p>
-
                 <p className="text-xs text-base-content/50">{teamLead.role}</p>
               </div>
             </div>
           </MotionCard>
         </motion.div>
 
-        {/* Second grid */}
-
+        {/* -------------------------- Second grid --------------------------- */}
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -306,9 +522,8 @@ export default function AboutUs() {
           viewport={{ once: true, amount: 0.2 }}
           className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
         >
-          {/* Docs */}
-
-          <MotionCard className="p-6">
+          {/* --- Card: documentation list --- */}
+          <MotionCard index={4} activeIndex={activeIndex} className="p-6">
             <h3 className="text-base font-semibold text-base-content">
               Our documentation.
               <span className="font-normal text-base-content/60">
@@ -329,9 +544,12 @@ export default function AboutUs() {
             </div>
           </MotionCard>
 
-          {/* Sync */}
-
-          <MotionCard className="p-6 lg:col-span-2">
+          {/* --- Card: "always in sync" illustration --- */}
+          <MotionCard
+            index={5}
+            activeIndex={activeIndex}
+            className="p-6 lg:col-span-2"
+          >
             <h3 className="text-base font-semibold text-base-content">
               Always in sync.
               <span className="font-normal text-base-content/60">
@@ -344,6 +562,8 @@ export default function AboutUs() {
               <div className="absolute h-28 w-28 rounded-full bg-primary/20 blur-2xl" />
 
               {cluster.map((person, index) => {
+                // Each floating avatar has a fixed corner position so they
+                // form a loose ring around the center microphone icon.
                 const positions = [
                   "left-6 top-2",
                   "right-10 top-0",
@@ -378,9 +598,8 @@ export default function AboutUs() {
             </div>
           </MotionCard>
 
-          {/* Team */}
-
-          <MotionCard className="p-6">
+          {/* --- Card: team list --- */}
+          <MotionCard index={6} activeIndex={activeIndex} className="p-6">
             <h3 className="text-base font-semibold text-base-content">
               The team.
               <span className="font-normal text-base-content/60">
