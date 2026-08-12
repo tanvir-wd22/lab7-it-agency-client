@@ -1,17 +1,3 @@
-/**
- * HEADING — simple version
- * -----------------------------------
- * HOW TO USE IT:
- *
- *   <Heading
- *     title="Real problems, real outcomes."
- *     description="We don't showcase logos — we showcase results."
- *   />
- *
- * Use it at the top of any section — just pass a different title and
- * description each time.
- */
-
 // Shades of #0A2239, from darkest to lightest.
 // Change these three values to shift the gradient's mood.
 const SHADES = {
