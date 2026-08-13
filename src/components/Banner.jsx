@@ -18,69 +18,94 @@ import {
 
 /**
  * ============================================================================
- * ORBIT HERO BANNER — v5 (bug fix + simplified, w-full everywhere)
+ * ORBIT HERO BANNER — v8 (full-width grid layout, bigger center circle)
  * ============================================================================
  *
- * Built with: React 19, Tailwind CSS v4, daisyUI v5 (for the
- * `base-100` / `base-content` / `primary` / `success` color tokens
- * below — they're daisyUI v5's CSS variables), and Motion v13 (the
- * package used to be called "framer-motion"; we import it as
- * "motion/react", which is the current package name).
+ * Stack: React 19, Tailwind CSS v4, daisyUI v5 (for the `base-100` /
+ * `base-content` / `primary` / `success` CSS-variable color tokens used
+ * below) and Motion v13 (imported as "motion/react").
  *
- * WHAT THIS FILE CONTAINS (read this first if you're new to the codebase)
- * ----------------------------------------------------------------------
- * A hero section built from THREE circles laid out in a CSS Grid:
+ * THIS COMPONENT OWNS NO OUTER SPACING ON PURPOSE.
+ * You've already wrapped it in your root layout with something like:
  *
- *      [ Stat Circle ]   [   Orbit Circle   ]   [ Stat Circle ]
+ *     <div className="mx-auto my-8 w-11/12 max-w-7xl">
+ *       <Banner />
+ *     </div>
  *
- * This component does NOT add its own outer spacing (no margin, no
- * padding, no max-width). That's on purpose — you told us the parent
- * component already wraps this in something like:
+ * so this file never adds its own margin, padding, or max-width — that
+ * would fight with the wrapper and cause double-spacing bugs. Everything
+ * below only cares about what happens *inside* whatever box it's given,
+ * and fills 100% of that width on every screen size.
  *
- *      <div className="max-w-7xl mx-auto w-11/12 my-8">
- *        <Banner />
- *      </div>
+ * WHAT'S NEW IN THIS PASS
+ * --------------------------
+ * 1. THE ROW LAYOUT IS NOW CSS GRID, NOT FLEXBOX. The previous flexbox
+ *    approach (percentage widths + `justify-between`) is what caused the
+ *    uneven spacing you saw — flex has to be told an exact width for each
+ *    circle and then guesses how to spread the leftover space, which gets
+ *    inconsistent at in-between screen sizes. Grid's `fr` (fraction) units
+ *    solve this properly: they divide the *container's* actual width into
+ *    proportional columns natively, so the spacing scales smoothly with no
+ *    special-casing. Full explanation at the `ORBIT_SIZE_CLASS` constant
+ *    below.
+ * 2. The center orbit circle is bigger relative to the two stat circles.
+ * 3. The center panel now shows ONLY the glowing "Innovative Solutions"
+ *    heading — the "Live" badge and the subtitle line underneath it were
+ *    removed.
+ * 4. Shimmering borders remain on the orbit circle's outer edge and on
+ *    each of its orbiting icons (the two side stat circles intentionally
+ *    stay plain/quiet — see `ShimmerBorder` below).
  *
- * so this file only worries about what happens INSIDE that box.
+ * HOW THE LAYOUT KEEPS THE CENTER CIRCLE CENTERED (read this if you're new)
+ * ----------------------------------------------------------------------------
+ * Below `lg`, `Banner` renders a flex column:
  *
- * WHAT CHANGED IN THIS PASS
- * ---------------------------
- * 1. BUG FIX — the center text used to drift off-center on some
- *    screens. Explained in detail right above `TitlePanel` below, but
- *    the short version: we were mixing a Tailwind CSS class for
- *    centering with a Motion-driven tilt effect, and they were both
- *    fighting to control the same `transform` CSS property. Fixed by
- *    doing the centering INSIDE Motion's own `style` prop instead of a
- *    Tailwind class, so there's only one thing controlling the
- *    transform, and it always keeps the text perfectly centered.
- * 2. The glow is back on the "Innovative Solutions" text (a soft
- *    blurred copy of the text sits behind the real text, and its
- *    brightness gently breathes forever) — while the text itself still
- *    only scales up on hover, no border or shadow appears anywhere in
- *    that panel.
- * 3. Every circle (the orbit AND both stat cards) is sized with just
- *    `w-full aspect-square` — no more separate width classes per
- *    breakpoint. The CSS Grid columns already control how wide each
- *    circle's column is, so `w-full` inside that column is all the
- *    sizing logic we need, and it naturally lines up with any other
- *    `w-full` component elsewhere on the page.
+ *     <div className="flex flex-col items-center ...">
  *
- * REUSABLE BUILDING BLOCKS (small components defined below)
- * -----------------------------------------------------------
- * - SnakeBorder     → a thin ring with a glowing "comet" that races
- *                      around it forever (used on icons + stat circles).
- * - OrbitPath        → the dashed circular track an orbit ring rides on.
- * - OrbitRing        → one ring of orbiting icons (there are three).
- * - CircleStatCard   → a circular stat card that floats gently in place.
- * - TitlePanel       → the interactive center "planet" with glowing text.
+ * `items-center` centers every child *horizontally* — automatically, for
+ * any child width — so the orbit circle (and both stat circles) always
+ * sit in the exact horizontal center of the available space, on a 320px
+ * phone or a 1000px tablet, with zero manual margin math.
+ *
+ * At `lg:` and up, it switches to a 3-column CSS grid instead
+ * (`lg:grid lg:grid-cols-[1fr_1.9fr_1fr]`). The middle grid column IS the
+ * mathematical center of the row, so the orbit circle sitting in it is
+ * always centered — and each circle additionally sits inside its own
+ * `flex justify-center` wrapper, so it stays centered within its column
+ * even when its own max-width cap makes it narrower than the column.
+ *
+ * HOW THE SHIMMER BORDER WORKS (read this if you're new to CSS masks)
+ * ------------------------------------------------------------------------
+ * `ShimmerBorder` draws a thin, glowing ring that races around an element
+ * forever — like a comet chasing its own tail. It needs to work on BOTH a
+ * perfect circle (the orbit's outer edge) and a rounded square (each icon
+ * node), so it can't use a simple round gradient. Instead it uses the
+ * classic "gradient border" CSS trick:
+ *
+ *   1. The wrapper element gets `padding: <thickness>px` and TWO mask
+ *      layers: one covering its full box, one covering only its
+ *      `content-box` (i.e. everything *inside* the padding).
+ *   2. `mask-composite: exclude` (and the `-webkit-` equivalent, `xor`,
+ *      for Safari) subtracts the second mask from the first — so only the
+ *      padding band itself stays visible. Whatever is drawn inside the
+ *      wrapper (a spinning conic-gradient "comet") only ever shows up in
+ *      that thin band, which automatically follows whatever `border-radius`
+ *      you give the wrapper — a full circle, a rounded square, anything.
+ *   3. A faint, non-spinning ring sits underneath so the shape always
+ *      reads even while the bright comet is on the opposite side.
+ *
+ * Because the visible area is controlled entirely by the mask (not by
+ * covering the middle with a solid color), this also works when the
+ * inside of the shape needs to stay fully transparent — exactly what we
+ * need for the orbit circle's outer edge, where icons and dashed paths
+ * must still show through the middle.
  * ============================================================================
  */
 
 // ---------------------------------------------------------------------------
-// 1. STATIC DATA
+// 1. STATIC DATA — keeping data separate from markup makes it easy to swap
+//    icons or copy without touching any layout code below.
 // ---------------------------------------------------------------------------
-// Keeping data separate from markup makes it easy for a beginner to swap
-// icons or copy without touching any layout code below.
 
 const INNER_RING_ICONS = [Code2, TerminalSquare, GitBranch, ShieldCheck];
 const MIDDLE_RING_ICONS = [Database, Globe2, CloudCog, Boxes];
@@ -100,10 +125,10 @@ const RIGHT_STAT = {
   trend: "+18.2% delivered",
 };
 
-// A soft, colored glow used ONLY on hover for icons/cards — never shown
-// at rest. Applied through Motion so it eases in and out smoothly
-// instead of snapping on and off.
-const HOVER_GLOW_SHADOW = "0 12px 40px -8px var(--color-primary)";
+// A soft colored shadow used ONLY on hover — no shadow at rest anywhere in
+// this file, only on interaction, which keeps things feeling calm and
+// intentional instead of busy.
+const HOVER_SHADOW = "0 16px 40px -12px var(--color-primary)";
 
 // ---------------------------------------------------------------------------
 // 2. SMALL HELPERS
@@ -111,7 +136,7 @@ const HOVER_GLOW_SHADOW = "0 12px 40px -8px var(--color-primary)";
 
 // Percentage-based circular layout for icons riding on a ring.
 // `radius` (0–50) controls how far from the container's center the ring
-// sits. 50 is the very edge of the circle.
+// sits. Kept a little inside the very edge (max 46) so icons never clip.
 function buildRingPositions(count, radius, offsetDeg = 0) {
   return Array.from({ length: count }, (_, i) => {
     const angle = ((360 / count) * i + offsetDeg) * (Math.PI / 180);
@@ -127,45 +152,69 @@ function buildRingPositions(count, radius, offsetDeg = 0) {
 // ---------------------------------------------------------------------------
 
 /**
- * SnakeBorder
- * A thin ring with a bright "comet" (a short glowing arc with a fading
- * tail) that endlessly races around it — like a snake chasing its own
- * tail, forever. Most of the ring stays dim; only the travelling comet
- * is bright at any given moment.
- *
- * HOW IT WORKS
- *   1. A faint static ring (`border border-base-content/15`) is drawn
- *      first, so the circle's shape always reads even when the comet
- *      is on the far side.
- *   2. A conic-gradient — mostly transparent, with one bright arc near
- *      the end of its sweep — spins on top of that, forever. Because
- *      it's mostly transparent, the faint static ring shows through
- *      everywhere except where the bright comet currently is.
- *
- * HOW TO USE IT: drop it as the FIRST child inside a `relative` wrapper
- * that owns the border-radius you want it to follow. Everything after
- * it in that wrapper should be inset by a couple of pixels with a solid
- * background, so this reads as a thin ring instead of a solid disc.
+ * Badge
+ * A tiny pill label: soft tinted background, no border, small text.
+ * Reused for the center panel's "Live" indicator and the stat cards'
+ * trend line.
  */
-function SnakeBorder({ rounded = "rounded-full", duration = 3.5, reverse = false }) {
-  return (
-    <div aria-hidden="true" className={`pointer-events-none absolute inset-0 ${rounded}`}>
-      {/* Faint base ring — keeps the shape visible at all times */}
-      <div className={`absolute inset-0 ${rounded} border border-base-content/15`} />
+function Badge({ icon: Icon, children, tone = "primary" }) {
+  const toneClasses =
+    tone === "success"
+      ? "bg-success/10 text-success"
+      : "bg-primary/10 text-primary";
 
-      {/* The comet: bright near the end of the sweep, transparent everywhere
-          else, so only a short glowing "snake" is ever visible at once. */}
-      <div className={`absolute inset-0 overflow-hidden ${rounded}`}>
-        <motion.div
-          className="absolute inset-[-50%]"
-          style={{
-            background:
-              "conic-gradient(from 0deg, transparent 0deg, transparent 265deg, color-mix(in oklch, var(--color-primary) 55%, transparent) 320deg, white 345deg, var(--color-primary) 360deg)",
-          }}
-          animate={{ rotate: reverse ? -360 : 360 }}
-          transition={{ duration, repeat: Infinity, ease: "linear" }}
-        />
-      </div>
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${toneClasses}`}
+    >
+      {Icon ? <Icon size={11} strokeWidth={2.5} /> : null}
+      {children}
+    </span>
+  );
+}
+
+/**
+ * ShimmerBorder
+ * A thin ring that races around its parent forever, built with the CSS
+ * mask trick explained in the file-level comment above. Works on any
+ * `border-radius` — pass `radiusClass="rounded-full"` for a circle or
+ * `radiusClass="rounded-xl"` (etc.) for a rounded square.
+ *
+ * HOW TO USE IT: place it as an absolutely-positioned child that fills its
+ * parent (the parent must be `relative`). If the parent also needs a
+ * solid-filled interior (like an icon node), inset that content by a few
+ * pixels — see `IconNode` below — so the ring peeks out around it. If the
+ * parent's interior should stay fully transparent (like the orbit circle's
+ * outer edge), no inset is needed; the ring already only occupies its own
+ * thin band.
+ */
+function ShimmerBorder({ radiusClass = "rounded-full", thickness = 2, duration = 4, reverse = false }) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`pointer-events-none absolute inset-0 ${radiusClass} overflow-hidden`}
+      style={{
+        padding: thickness,
+        WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
+        WebkitMaskComposite: "xor",
+        maskComposite: "exclude",
+      }}
+    >
+      {/* Faint static ring — keeps the shape visible even while the bright
+          comet below is on the opposite side. */}
+      <div className={`absolute inset-0 ${radiusClass} bg-base-content/20`} />
+
+      {/* The comet: bright near the end of its sweep, transparent
+          everywhere else, spinning forever. */}
+      <motion.div
+        className="absolute inset-[-50%]"
+        style={{
+          background:
+            "conic-gradient(from 0deg, transparent 0deg, transparent 268deg, color-mix(in oklch, var(--color-primary) 60%, transparent) 320deg, white 345deg, var(--color-primary) 360deg)",
+        }}
+        animate={{ rotate: reverse ? -360 : 360 }}
+        transition={{ duration, repeat: Infinity, ease: "linear" }}
+      />
     </div>
   );
 }
@@ -174,40 +223,58 @@ function SnakeBorder({ rounded = "rounded-full", duration = 3.5, reverse = false
  * OrbitPath
  * The dashed circular "track" that shows where an orbit ring travels.
  * `inset` should match the radius used for that ring's icon positions
- * (the formula is simply `inset = 50 - radius`, in percent).
+ * (formula: `inset = 50 - radius`, in percent).
  */
 function OrbitPath({ inset }) {
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute rounded-full" style={{ inset }}>
-      {/* soft glow sitting behind the crisp dashed line */}
-      <motion.div
-        animate={{ opacity: [0.25, 0.5, 0.25] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute inset-0 rounded-full border-2 border-primary/30 blur-[3px]"
-      />
-      {/* the crisp dashed line itself */}
-      <div className="absolute inset-0 rounded-full border-2 border-dashed border-base-content/30" />
-    </div>
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute rounded-full border border-dashed border-base-content/15"
+      style={{ inset }}
+    />
+  );
+}
+
+/**
+ * IconNode
+ * One orbiting icon. Has an always-on `ShimmerBorder` racing around its
+ * edge, and on hover it lifts slightly, gains a soft colored shadow, and
+ * its icon picks up the primary color.
+ *
+ * `sizeClass` is a *responsive* Tailwind size string (e.g.
+ * "h-7 w-7 sm:h-8 sm:w-8 lg:h-10 lg:w-10") so the icon shrinks in step with
+ * the orbit circle on small screens instead of overflowing it.
+ */
+function IconNode({ icon: Icon, sizeClass }) {
+  return (
+    <motion.div
+      whileHover={{ scale: 1.18, y: -2, boxShadow: HOVER_SHADOW }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: "spring", stiffness: 320, damping: 16 }}
+      className={`group/node relative rounded-xl ${sizeClass}`}
+    >
+      <ShimmerBorder radiusClass="rounded-xl" thickness={1.5} duration={3} />
+
+      {/* Content sits inset by the ring's thickness (2px on each side) so
+          the shimmering ring stays visible around it instead of being
+          covered up. */}
+      <div className="relative z-10 m-[2px] flex h-[calc(100%-4px)] w-[calc(100%-4px)] items-center justify-center rounded-[10px] bg-base-100 text-base-content/50 transition-colors duration-200 group-hover/node:text-primary">
+        <Icon className="h-[45%] w-[45%]" strokeWidth={2} />
+      </div>
+    </motion.div>
   );
 }
 
 /**
  * OrbitRing
- * One ring of orbiting icon "moons". The whole ring spins together, and
- * each icon counter-rotates by the same amount so it stays upright the
- * whole time it travels.
- *
- * Every icon node:
- *   - Has a SnakeBorder racing around it, 100% of the time (not just
- *     on hover).
- *   - Scales up AND gains a soft colored shadow on hover — there is NO
- *     shadow while it's just orbiting at rest.
+ * One ring of orbiting IconNodes. The whole ring spins together, and each
+ * icon counter-rotates by the same amount so it stays upright as it
+ * travels — like a gondola on a ferris wheel.
  */
 function OrbitRing({ icons, positions, duration, direction, nodeSizeClass }) {
   return (
     // pointer-events-none on the rotating wrapper lets hover/clicks pass
-    // through the empty parts of the ring instead of blocking whatever
-    // ring is drawn underneath it.
+    // through the empty parts of the ring to whatever sits underneath it.
     <motion.div
       className="pointer-events-none absolute inset-0"
       style={{ transformOrigin: "50% 50%" }}
@@ -229,18 +296,7 @@ function OrbitRing({ icons, positions, duration, direction, nodeSizeClass }) {
             animate={{ rotate: direction * -360 }}
             transition={{ duration, repeat: Infinity, ease: "linear" }}
           >
-            <motion.div
-              whileHover={{ scale: 1.3, boxShadow: HOVER_GLOW_SHADOW }}
-              whileTap={{ scale: 0.95 }}
-              transition={{ type: "spring", stiffness: 300, damping: 14 }}
-              className={`group/node relative rounded-2xl ${nodeSizeClass}`}
-            >
-              {/* Always-on snake border — races around 100% of the time */}
-              <SnakeBorder rounded="rounded-2xl" duration={3} reverse={direction < 0} />
-              <div className="relative z-10 m-[1.5px] flex h-[calc(100%-3px)] w-[calc(100%-3px)] items-center justify-center rounded-[inherit] bg-base-100 text-base-content/55 group-hover/node:text-primary">
-                <Icon className="h-1/2 w-1/2" strokeWidth={2} />
-              </div>
-            </motion.div>
+            <IconNode icon={Icon} sizeClass={nodeSizeClass} />
           </motion.div>
         </div>
       ))}
@@ -249,70 +305,51 @@ function OrbitRing({ icons, positions, duration, direction, nodeSizeClass }) {
 }
 
 /**
- * CircleStatCard
- * A perfect circle showing one stat, with a gentle up-and-down float and
- * an always-on SnakeBorder racing around its edge. On hover it scales
- * slightly and gains a soft colored shadow — there is NO shadow while
- * it's just sitting/floating.
+ * StatCircle
+ * A perfect circle showing one stat, floating gently up and down. Kept
+ * deliberately quiet — a plain 1px border, shadow only on hover, muted
+ * label text — so the shimmering orbit circle in the middle stays the
+ * page's one focal point.
  *
- * Sizing note: this is just `w-full aspect-square`. It doesn't pick its
- * own width — whatever grid column it's placed in decides that, which
- * is what keeps it lined up with every other `w-full` element on the
- * page (including the orbit circle next to it).
+ * Sizing: `sizeClass` comes from `Banner` so both stat circles and the
+ * center orbit circle share one consistent, responsive sizing system.
  */
-function CircleStatCard({ stat, delay = 0 }) {
+function StatCircle({ stat, sizeClass, delay = 0 }) {
   const Icon = stat.icon;
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.85, y: 24 }}
+      initial={{ opacity: 0, scale: 0.9, y: 20 }}
       whileInView={{ opacity: 1, scale: 1, y: 0 }}
       viewport={{ once: true, amount: 0.4 }}
-      transition={{ duration: 0.7, ease: "easeOut", delay }}
+      transition={{ duration: 0.6, ease: "easeOut", delay }}
+      className={`shrink-0 ${sizeClass}`}
     >
       {/* Gentle continuous float */}
       <motion.div
-        animate={{ y: [0, -10, 0] }}
+        animate={{ y: [0, -8, 0] }}
         transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay }}
         className="relative aspect-square w-full"
       >
-        {/* Soft ambient glow behind the circle — a blur, not a shadow */}
         <motion.div
-          aria-hidden="true"
-          animate={{ opacity: [0.25, 0.5, 0.25], scale: [0.95, 1.05, 0.95] }}
-          transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut", delay }}
-          className="absolute -inset-3 -z-10 rounded-full bg-primary/25 blur-xl"
-        />
-
-        <motion.div
-          whileHover={{ scale: 1.05, boxShadow: HOVER_GLOW_SHADOW }}
+          whileHover={{ scale: 1.04, boxShadow: HOVER_SHADOW }}
           whileTap={{ scale: 0.98 }}
-          transition={{ type: "spring", stiffness: 260, damping: 16 }}
-          className="group/card relative h-full w-full overflow-hidden rounded-full"
+          transition={{ type: "spring", stiffness: 260, damping: 18 }}
+          className="relative h-full w-full overflow-hidden rounded-full border border-base-content/10 bg-base-100 shadow-sm shadow-black/[0.03] transition-colors duration-200 hover:border-primary/30"
         >
-          {/* Always-on snake border — races around 100% of the time */}
-          <SnakeBorder rounded="rounded-full" duration={4.5} />
-
-          {/* Shimmer sweep on hover */}
-          <motion.span
-            aria-hidden="true"
-            initial={{ x: "-120%" }}
-            whileHover={{ x: "120%" }}
-            transition={{ duration: 0.7, ease: "easeInOut" }}
-            className="pointer-events-none absolute inset-0 z-20 w-1/3 -skew-x-12 bg-gradient-to-r from-transparent via-base-content/10 to-transparent"
-          />
-
-          {/* Inset content circle — this inset is what turns the racing
-              comet behind it into a thin ring instead of a solid disc. */}
-          <div className="relative z-10 m-[2px] flex h-[calc(100%-4px)] w-[calc(100%-4px)] flex-col items-center justify-center gap-1.5 rounded-full bg-base-100/95 px-5 text-center backdrop-blur-sm">
+          <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 px-5 text-center">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
               <Icon size={16} strokeWidth={2} />
             </div>
-            <p className="text-[10px] font-medium text-base-content/45">{stat.label}</p>
-            <p className="text-xl font-bold text-base-content sm:text-2xl">{stat.value}</p>
-            <p className="flex items-center gap-1 text-[10px] font-medium text-success">
-              <ArrowUpRight size={11} /> {stat.trend}
+            <p className="text-[10px] font-medium text-base-content/45">
+              {stat.label}
             </p>
+            <p className="text-xl font-bold text-base-content sm:text-2xl">
+              {stat.value}
+            </p>
+            <Badge icon={ArrowUpRight} tone="success">
+              {stat.trend}
+            </Badge>
           </div>
         </motion.div>
       </motion.div>
@@ -322,48 +359,25 @@ function CircleStatCard({ stat, delay = 0 }) {
 
 /**
  * TitlePanel
- * The center "planet" — no border, no running border, no box-shadow, at
- * rest OR on hover. Two things make it feel alive instead:
+ * The center "planet" — no border, no shadow, ever. Two things make it
+ * feel alive instead:
+ *   1. INTERACTIVE TILT — the panel tilts slightly toward your cursor.
+ *   2. GLOWING TITLE — a soft blurred copy of the heading sits behind the
+ *      real text and gently breathes; the real text scales up on hover.
  *
- *   1. INTERACTIVE TILT — move your mouse over the panel and it tilts
- *      slightly toward your cursor in 3D, like a physical card.
- *   2. GLOWING TEXT — "Innovative Solutions" glows constantly (a soft
- *      blurred copy of the text sits behind the real text, breathing
- *      brightness forever), and the text itself scales up on hover.
- *
- * -------------------------------------------------------------------
- * THE BUG WE FIXED HERE (worth understanding if you're new to Motion)
- * -------------------------------------------------------------------
- * The previous version centered this panel with Tailwind's
- * `-translate-x-1/2 -translate-y-1/2` classes, and ALSO gave it a tilt
- * using Motion's `rotateX` / `rotateY` in the `style` prop.
- *
- * The problem: both of those are trying to control the exact same CSS
- * property, `transform`. Motion components always compute and own the
- * full `transform` value themselves whenever you use a Motion-managed
- * property like `rotateX`. So the moment we added the tilt, Motion
- * rebuilt `transform` from scratch using only x, y, rotateX, rotateY —
- * completely ignoring the Tailwind class. Our centering offset quietly
- * disappeared, and the panel drifted off-center.
- *
- * The fix: stop centering with a Tailwind class, and instead give
- * Motion the centering offset directly, as `x: "-50%"` and `y: "-50%"`
- * in the SAME `style` object as the tilt. Now there's only one system
- * (Motion) computing `transform`, from ALL the pieces at once (x, y,
- * rotateX, rotateY) — so centering and tilting always agree, on every
- * screen size, every time.
+ * Why the tilt and the centering live in one `style` object: Motion takes
+ * full ownership of the `transform` CSS property whenever you animate a
+ * Motion-managed value like `rotateX`. If centering were done with a
+ * Tailwind class such as `-translate-x-1/2` instead, Motion would silently
+ * overwrite it the moment the tilt kicks in, and the panel would drift
+ * off-center. Putting `x: "-50%"` and `y: "-50%"` in the same `style`
+ * object as `rotateX`/`rotateY` means Motion computes one single,
+ * consistent `transform` from all four values together, every frame.
  */
 function TitlePanel() {
-  // Raw cursor offset from the panel's center, in pixels. `useMotionValue`
-  // is just a Motion box that can hold a number and update extremely
-  // fast (every animation frame) without re-rendering React.
   const cursorX = useMotionValue(0);
   const cursorY = useMotionValue(0);
 
-  // Turn that pixel offset into a small rotation angle. Moving the mouse
-  // 60px right of center tilts the panel 8 degrees one way; 60px left
-  // tilts it the other way. Vertical movement tilts the opposite axis —
-  // together that makes the panel feel like it's facing your cursor.
   const rotateX = useTransform(cursorY, [-60, 60], [8, -8]);
   const rotateY = useTransform(cursorX, [-60, 60], [-8, 8]);
 
@@ -374,7 +388,6 @@ function TitlePanel() {
   }
 
   function handleMouseLeave() {
-    // Relax back to flat when the cursor leaves.
     cursorX.set(0);
     cursorY.set(0);
   }
@@ -383,71 +396,68 @@ function TitlePanel() {
     <motion.div
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      // Centering (x, y) AND tilting (rotateX, rotateY) live together in
-      // one style object, so Motion builds one consistent `transform`
-      // from all four values every frame — see the big comment above.
       style={{ x: "-50%", y: "-50%", rotateX, rotateY, transformPerspective: 700 }}
-      className="absolute left-1/2 top-1/2 z-10 flex aspect-square w-[30%] min-w-28 flex-col items-center justify-center gap-1 rounded-full text-center"
+      className="absolute left-1/2 top-1/2 z-10 flex aspect-square w-[38%] min-w-28 flex-col items-center justify-center rounded-full text-center"
     >
-      {/* Glowing text block — the ONLY thing in this panel that lights
-          up or reacts to hover. No border, no shadow, anywhere here. */}
+      {/* Only the glowing heading lives here now — no badge, no subtitle.
+          A blurred duplicate of the same text sits behind the real text
+          and gently breathes, which is what creates the glow. */}
       <div className="relative px-4">
-        {/* Blurred duplicate sitting behind the real text — this is what
-            creates the constant glow "on top of" the words. Its
-            opacity breathes gently forever, independent of hover. */}
         <motion.p
           aria-hidden="true"
-          animate={{ opacity: [0.45, 0.9, 0.45] }}
+          animate={{ opacity: [0.4, 0.8, 0.4] }}
           transition={{ duration: 2.6, repeat: Infinity, ease: "easeInOut" }}
-          className="pointer-events-none absolute inset-0 select-none text-[13px] font-bold leading-tight tracking-tight text-primary blur-md sm:text-base md:text-lg"
+          className="pointer-events-none absolute inset-0 select-none text-sm font-bold leading-tight tracking-tight text-primary blur-md sm:text-base md:text-lg lg:text-xl"
         >
           Innovative Solutions
         </motion.p>
 
-        {/* The real, readable text. `whileHover` scales ONLY this
-            element — not the circle, not any border, nothing else. */}
         <motion.p
-          whileHover={{ scale: 1.12 }}
+          whileHover={{ scale: 1.1 }}
           transition={{ type: "spring", stiffness: 300, damping: 15 }}
-          className="relative cursor-default text-[13px] font-bold leading-tight tracking-tight text-base-content sm:text-base md:text-lg"
+          className="relative cursor-default text-sm font-bold leading-tight tracking-tight text-base-content sm:text-base md:text-lg lg:text-xl"
         >
           Innovative <span className="text-primary">Solutions</span>
         </motion.p>
       </div>
-
-      <p className="hidden max-w-[85%] text-[10px] font-medium leading-snug text-base-content/50 sm:block sm:text-[11px]">
-        Scalable engineering to grow your business 🚀
-      </p>
     </motion.div>
   );
 }
 
 /**
  * OrbitCircle
- * The center "planet" (`TitlePanel`) with THREE rings of orbiting icons
- * travelling around it (inner, middle, outer). This component never
- * clips its own children, so the outer ring's icons — which sit right
- * at the edge — are always fully visible instead of being cut off.
+ * The center "planet" (`TitlePanel`) with three rings of orbiting
+ * `IconNode`s, plus a shimmering `ShimmerBorder` marking the circle's own
+ * outer edge. Because `ShimmerBorder`'s visible ring is created entirely
+ * by a CSS mask (not by covering the middle with a solid fill), the
+ * circle's interior stays fully transparent — the ambient glow, dashed
+ * paths, orbiting icons, and title panel all still show straight through.
  *
- * Sizing note: same as the stat cards — `w-full aspect-square`. Its
- * grid column is wider than the stat cards' columns (see `Banner`
- * below), which is the ONLY reason this circle renders bigger. No
- * separate width classes needed here.
+ * `sizeClass` comes from `Banner` — see the file-level comment for how
+ * sizing stays consistent with the two stat circles across every screen.
  */
-function OrbitCircle() {
-  // Three distinct radii so all three rings are genuinely concentric
-  // instead of stacking on top of each other. The matching OrbitPath
-  // `inset` for a given radius is always `50 - radius` (in percent).
-  const innerPositions = useMemo(() => buildRingPositions(4, 22, -45), []);
-  const middlePositions = useMemo(() => buildRingPositions(4, 36, 20), []);
-  const outerPositions = useMemo(() => buildRingPositions(4, 47, 0), []);
+function OrbitCircle({ sizeClass }) {
+  const innerPositions = useMemo(() => buildRingPositions(4, 21, -45), []);
+  const middlePositions = useMemo(() => buildRingPositions(4, 34, 20), []);
+  const outerPositions = useMemo(() => buildRingPositions(4, 46, 0), []);
 
   return (
-    <div className="relative aspect-square w-full">
+    <div className={`relative aspect-square shrink-0 ${sizeClass}`}>
+      {/* Soft ambient glow behind the whole circle */}
+      <motion.div
+        aria-hidden="true"
+        animate={{ opacity: [0.15, 0.3, 0.15] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+        className="pointer-events-none absolute inset-[-15%] -z-10 rounded-full bg-primary/10 blur-3xl"
+      />
+
+      {/* The orbit circle's own shimmering outer edge */}
+      <ShimmerBorder radiusClass="rounded-full" thickness={2} duration={6} />
+
       {/* Dashed orbit-path guides — one per ring, inset = 50 - radius */}
-      <OrbitPath inset="28%" />
-      <OrbitPath inset="14%" />
-      <OrbitPath inset="3%" />
+      <OrbitPath inset="29%" />
+      <OrbitPath inset="16%" />
+      <OrbitPath inset="4%" />
 
       {/* Inner ring — smallest icons, fastest spin, closest to center */}
       <OrbitRing
@@ -455,7 +465,7 @@ function OrbitCircle() {
         positions={innerPositions}
         duration={16}
         direction={1}
-        nodeSizeClass="h-9 w-9 sm:h-10 sm:w-10"
+        nodeSizeClass="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 lg:h-10 lg:w-10"
       />
       {/* Middle ring — medium icons, medium speed, spins the other way */}
       <OrbitRing
@@ -463,79 +473,92 @@ function OrbitCircle() {
         positions={middlePositions}
         duration={26}
         direction={-1}
-        nodeSizeClass="h-11 w-11 sm:h-12 sm:w-12"
+        nodeSizeClass="h-8 w-8 sm:h-9 sm:w-9 md:h-10 md:w-10 lg:h-12 lg:w-12"
       />
-      {/* Outer ring — biggest icons, slowest spin, rides right on the
-          circle's edge so the icons visibly float over the orbit line */}
+      {/* Outer ring — biggest icons, slowest spin, rides the circle's edge */}
       <OrbitRing
         icons={OUTER_RING_ICONS}
         positions={outerPositions}
         duration={38}
         direction={1}
-        nodeSizeClass="h-14 w-14 sm:h-16 sm:w-16"
+        nodeSizeClass="h-9 w-9 sm:h-10 sm:w-10 md:h-12 md:w-12 lg:h-14 lg:w-14"
       />
 
-      {/* Interactive, glowing-text-only center panel — see TitlePanel
-          above for exactly what it does, and how the centering bug
-          was fixed. */}
       <TitlePanel />
     </div>
   );
 }
 
 // ---------------------------------------------------------------------------
-// 4. THE BANNER — puts the three circles into a responsive grid
+// 4. THE BANNER — lays out all three circles and owns their shared sizing.
 // ---------------------------------------------------------------------------
+
+// Below `lg` the layout is a single stacked column, so each circle's
+// available width is basically "however wide the screen is" — `vw`
+// (viewport width) tracks that well, and `clamp(min, vw, max)` keeps it
+// from ever getting too small or too large.
+//
+// At `lg:` the row switches to CSS GRID instead of flexbox. This is the
+// key fix: grid's `fr` (fraction) units divide up the CONTAINER's actual
+// width — not the viewport — so a `1fr / 1.9fr / 1fr` column split always
+// gives the middle column ~1.9x the width of each side column, whether
+// the container is 950px (a small laptop) or 1173px (the capped width of
+// your `max-w-7xl w-11/12` root wrapper on a huge monitor). That's what
+// makes this both full-width AND smooth: there's no viewport-vs-container
+// mismatch left to cause uneven jumps in spacing.
+//
+// Each circle still gets its own `max-w-[...]` cap so it never grows
+// past a sensible size even in a very wide column, and every circle sits
+// inside a `flex justify-center` wrapper (see `Banner` below) so it's
+// always centered within its own column — including the stat circles,
+// and especially the orbit circle in the middle.
+const ORBIT_SIZE_CLASS =
+  "w-[clamp(240px,60vw,360px)] lg:w-full lg:max-w-[500px]";
+const STAT_SIZE_CLASS =
+  "w-[clamp(160px,42vw,220px)] lg:w-full lg:max-w-[260px]";
 
 function Banner() {
   return (
-    // No margin, padding, or max-width classes here — that's handled by
-    // whatever wraps this component. `relative` is only here so the
-    // ambient glow below has something to position itself against, and
-    // `w-full` so this fills whatever width its parent gives it.
-    //
-    // No `overflow-hidden` either: the outer ring's icons sit right at
-    // the edge of the orbit circle, and clipping this section would
-    // cut them off.
+    // This section adds zero margin, padding, or max-width of its own —
+    // the root layout you already have (max-w-7xl w-11/12 mx-auto my-8)
+    // is what positions this whole block on the page, and everything here
+    // fills 100% of whatever width that wrapper provides.
     <section className="relative w-full">
-      {/* Ambient background glow, sits behind everything */}
-      <motion.div
-        aria-hidden="true"
-        animate={{ opacity: [0.15, 0.3, 0.15] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-        className="pointer-events-none absolute left-1/2 top-0 -z-10 h-96 w-96 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
-      />
-
       {/*
-        THE RESPONSIVE GRID
-        --------------------
-        - grid-cols-1                   → mobile & tablet: everything
-          stacks in ONE column, and since every circle is `w-full`,
-          they all end up the same width as their shared column.
-        - lg:grid-cols-[1fr_1.5fr_1fr]   → large screens (1024px+):
-          three columns, but the MIDDLE one is 1.5x wider than the
-          side ones. Because every circle is just `w-full` of its own
-          column, that single grid definition is 100% of what makes
-          the orbit circle bigger than the two stat circles — no
-          separate width classes to keep in sync.
+        Below `lg`: `flex flex-col items-center` stacks the three circles
+        vertically. `items-center` centers every child horizontally no
+        matter its width — this is what keeps the orbit circle perfectly
+        centered on every small/medium screen.
 
-        The `order-*` classes below control the stacking order on
-        mobile without a second copy of the markup: the orbit shows
-        first on small screens, then the two stat circles. On large
-        screens, `lg:order-*` restores left-card / orbit / right-card
-        order.
+        At `lg:` and up: `lg:grid lg:grid-cols-[1fr_1.9fr_1fr]` replaces
+        the flex column with a 3-column grid that spans the FULL width of
+        the container. The middle column is ~1.9x each side column, so it
+        automatically fills the exact width the orbit circle needs while
+        the two side columns automatically fill the width the stat circles
+        need — with no hard-coded pixel math and no gaps that grow oddly
+        at any particular screen size (see the constants above for the
+        full explanation). Because the middle column is mathematically the
+        center of the grid, the orbit circle is always centered — on a
+        laptop, an ultrawide monitor, everywhere.
+
+        The `order-*` classes control stacking order without duplicating
+        markup: the orbit shows first on small screens, then the two stat
+        circles below it; at `lg:` the natural left / center / right order
+        is restored. Each column's inner `flex justify-center` keeps that
+        column's circle centered even when its `max-w-[...]` cap makes it
+        narrower than the column itself.
       */}
-      <div className="grid w-full grid-cols-1 items-center gap-12 lg:grid-cols-[1fr_1.5fr_1fr] lg:gap-8">
-        <div className="order-2 lg:order-1">
-          <CircleStatCard stat={LEFT_STAT} delay={0.2} />
+      <div className="flex w-full flex-col items-center gap-10 lg:grid lg:grid-cols-[1fr_1.9fr_1fr] lg:items-center lg:gap-6">
+        <div className="order-2 flex w-full justify-center lg:order-1">
+          <StatCircle stat={LEFT_STAT} sizeClass={STAT_SIZE_CLASS} delay={0.15} />
         </div>
 
-        <div className="order-1 lg:order-2">
-          <OrbitCircle />
+        <div className="order-1 flex w-full justify-center lg:order-2">
+          <OrbitCircle sizeClass={ORBIT_SIZE_CLASS} />
         </div>
 
-        <div className="order-3 lg:order-3">
-          <CircleStatCard stat={RIGHT_STAT} delay={0.35} />
+        <div className="order-3 flex w-full justify-center lg:order-3">
+          <StatCircle stat={RIGHT_STAT} sizeClass={STAT_SIZE_CLASS} delay={0.3} />
         </div>
       </div>
     </section>
